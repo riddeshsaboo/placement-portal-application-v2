@@ -1,0 +1,21 @@
+from flask import Flask
+from extentions import db 
+from models import User
+
+app = Flask(__name__)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///placement.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+
+@app.route("/")
+def home():
+    return "Placement Portal App is Running"
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    
+    with app.app_context():
+        db.create_all() 
+        
+
