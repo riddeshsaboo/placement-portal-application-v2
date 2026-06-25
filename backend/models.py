@@ -33,6 +33,7 @@ class Student(db.Model):
     skills = db.Column(db.Text, nullable = False)
     experience = db.Column(db.Text)
     resume_path = db.Column(db.String(255))
+    contact = db.Column(db.String(255))
     user = db.relationship("User", backref="student", uselist=False)
 
 class PlacementDrive(db.Model):    
@@ -43,12 +44,12 @@ class PlacementDrive(db.Model):
     description = db.Column(db.Text)
     salary = db.Column(db.Float)
     skills_required = db.Column(db.Text)
-    min_cgpa = db.Column(db.Float, nullable=False)
+    min_cgpa = db.Column(db.Float)
     status = db.Column(db.Enum("pending","approved","closed",name='drive_status'),nullable=False,default="pending")
     company = db.relationship("Company", backref="placement_drives")
     job_location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.now)
-    deadline = db.Column(db.Date, nullable=False)
+    deadline = db.Column(db.DateTime, nullable=False)
     vacancies = db.Column(db.Integer, nullable=False)
 
 class Application(db.Model):

@@ -6,6 +6,8 @@ import RegisterCompanyView from '../views/RegisterCompanyView.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
 import StudentDashboard from '../views/StudentDashboard.vue'
 import CompanyDashboard from '../views/CompanyDashboard.vue'
+import AddJobPosting from '../views/AddJobPosting.vue'
+
 
 const router = createRouter({
     history: createWebHistory(),
@@ -33,6 +35,10 @@ const router = createRouter({
         {
             path: '/company',
             component: CompanyDashboard
+        },
+        {
+            path: '/company/add_job_posting',
+            component: AddJobPosting
         }
     ]
 })

@@ -46,6 +46,8 @@
         />
     </div>
     <br><br>
+    <input v-model="contact" type="text" placeholder="Contact" />
+    <br><br>
     <input v-model="skills" type="text" placeholder="Skills" />
     <br><br>
     <input v-model="experience" type="text" placeholder="Experience" />
@@ -76,6 +78,7 @@ export default {
             education: "",
             branch: "",
             customBranch: "",
+            contact: "",
             skills: "",
             experience: ""
         }
@@ -94,14 +97,16 @@ export default {
                         cgpa: this.cgpa,
                         education: this.education,
                         branch: finalBranch,
+                        contact: this.contact,
                         skills: this.skills,
                         experience: this.experience
                     }
                 )
                 alert(response.data.message)
                 this.$router.push("/")
+
             } catch (error) {
-                alert(error.response.data.message)
+                alert(error.response.data.message || "Something went wrong")
             }
         }
     }

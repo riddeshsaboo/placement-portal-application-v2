@@ -18,11 +18,12 @@ def register_student():
     full_name = data.get("full_name")
     cgpa = data.get("cgpa")
     branch = data.get("branch")
+    contact = data.get("contact")
     education = data.get("education")
     skills = data.get("skills")
     experience = data.get("experience")
 
-    if (not email or not password or not full_name or not branch or not education or not skills or cgpa is None ):
+    if (not email or not password or not full_name or not branch or not education or not skills or cgpa is None or not contact):
         return {"message": "Required fields missing"}, 400
     
     if cgpa < 0 or cgpa > 10:
@@ -39,7 +40,7 @@ def register_student():
     db.session.commit()
 
     student = Student(
-        user_id = user.id, full_name = full_name, cgpa = cgpa, branch = branch, education = education, skills = skills, experience = experience
+        user_id = user.id, full_name = full_name, cgpa = cgpa, branch = branch, contact = contact ,education = education, skills = skills, experience = experience
     )
     db.session.add(student)
     db.session.commit()
@@ -105,20 +106,23 @@ def login():
         if existing_user.role == "company":
             company = Company.query.filter_by(user_id=existing_user.id).first()
             if company.approval_status != "approved":
-                return {"message": "Company account pending approval"}, 403
+                if company.approval_status == "pending":
+                    return {"message": "Company account pending approval, contact admin at admin@gmail.com"}, 403
+                else : 
+                    return {"message": f"Company account is {company.approval_status}, contact admin at admin@gmail.com"}, 403
             else : 
-                token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role})
+                token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role, "user_id": existing_user.id})
                 return {"message": "Login success", "token": token, "role": existing_user.role}, 200
         else : 
-            token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role})
+            token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role, "user_id": existing_user.id})
             return {"message": "Login success", "token": token, "role": existing_user.role}, 200
     else : 
         return {"message": "Incorrect password"}, 400
     
 
-@auth.route("/protected")
-@jwt_required()
-def protected():
-    return {
-        "message": "Access Granted"
-    }
+# @auth.route("/protected")
+# @jwt_required()
+# def protected():
+#     return {
+#         "message": "Access Granted"
+#     }

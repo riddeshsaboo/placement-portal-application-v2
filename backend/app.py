@@ -1,6 +1,7 @@
 from flask import Flask
 from extentions import db
 from models import *
+from routes.company import company
 from routes.auth import auth
 from flask_jwt_extended import JWTManager
 from routes.admin import admin
@@ -20,6 +21,7 @@ app.config["JWT_SECRET_KEY"] = "jwt_key"
 
 app.register_blueprint(auth)
 app.register_blueprint(admin)
+app.register_blueprint(company)
 
 
 db.init_app(app)

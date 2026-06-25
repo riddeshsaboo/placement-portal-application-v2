@@ -2,6 +2,9 @@
     <div v-if="role == 'company' ">
         <h1>Welcome Company</h1>
         <button @click="logout">Logout</button>
+        <br>
+        <br>
+        <router-link to="/company/add_job_posting">New Job posting</router-link>
     </div>
     <div v-else>
         <h1>You are not company! Please <router-link to="/">Login</router-link></h1>
