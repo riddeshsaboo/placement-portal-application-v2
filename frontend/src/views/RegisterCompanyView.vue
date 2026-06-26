@@ -1,65 +1,50 @@
 <template>
-    <div>
-        <h1>Company Registration</h1>
-    <input
-        v-model="email"
-        type="email"
-        placeholder="Company Email"
-    />
-    <br><br>
-    <input
-        v-model="password"
-        type="password"
-        placeholder="Password"
-    />
-    <br><br>
-    <input
-        v-model="company_name"
-        type="text"
-        placeholder="Company Name"
-    />
-    <br><br>
-    <input
-        v-model="industry"
-        type="text"
-        placeholder="Industry"
-    />
-    <br><br>
-    <input
-        v-model="location"
-        type="text"
-        placeholder="Location"
-    />
-    <br><br>
-    <input
-        v-model="website"
-        type="text"
-        placeholder="Website (Optional)"
-    />
-    <br><br>
-    <textarea
-        v-model="description"
-        placeholder="Company Description (Optional)"
-        rows="5"
-        cols="40"
-    ></textarea>
-    <br><br>
-    <button @click="registerCompany">
-        Register Company
-    </button>
-    <br><br>
-    <h4>
-        Already have an account?
-        <router-link to="/">Login</router-link>
-    </h4>
-    <h4>
-        Student Registration?
-        <router-link to="/register/student">
-            Register as Student
+<div>
+    <nav class="p-2 bg-body-tertiary">
+        <router-link class="navbar-brand" to="/">
+            <h3 class="fw-bold">Placement Portal V2</h3>
         </router-link>
-    </h4>
+    </nav>
+
+    <div class="container d-flex justify-content-center align-items-center mt-2" style="min-height:85vh">
+        <div style="width:600px" class="p-3 bg-body-tertiary rounded border border-warning">
+            <div class="card-header text-center">
+                <h2>Company Registration</h2>
+            </div>
+            <hr>
+            <div class="card-body">
+                <label class="form-label">Company Email</label>
+                <input class="form-control mb-1" v-model="email" type="email" placeholder="Company Email" />
+                <label class="form-label">Password</label>
+                <input class="form-control mb-1" v-model="password" type="password" placeholder="Password" />
+                <label class="form-label">Company Name</label>
+                <input class="form-control mb-1" v-model="company_name" type="text" placeholder="Company Name" />
+                <label class="form-label">Industry</label>
+                <input class="form-control mb-1" v-model="industry" type="text" placeholder="Industry" />
+                <label class="form-label">Location</label>
+                <input class="form-control mb-1" v-model="location" type="text" placeholder="Location" />
+                <label class="form-label">Website (Optional)</label>
+                <input class="form-control mb-1" v-model="website" type="text" placeholder="Website (Optional)" />
+                <label class="form-label">Company Description (Optional)</label>
+                <textarea class="form-control mb-2" v-model="description" placeholder="Company Description" rows="5"></textarea>
+               
+                <button @click="registerCompany" class="btn btn-warning w-100 mt-3 mb-3">Register Company</button>
+                <hr>
+                
+                <p class="text-center mb-2">
+                    Already have an account?
+                    <router-link to="/login">Login</router-link>
+                </p>
+                <p class="text-center mb-2">
+                    Student Registration?
+                    <router-link to="/register/student">Register as Student</router-link>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 </template>
+
 <script>
 import axios from "axios"
 export default {
@@ -90,7 +75,7 @@ export default {
                     }
                 )
                 alert(response.data.message)
-                this.$router.push("/")
+                this.$router.push("/login")
             } catch (error) {
                 alert(error.response.data.message)
             }

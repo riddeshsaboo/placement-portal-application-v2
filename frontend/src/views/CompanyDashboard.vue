@@ -7,7 +7,7 @@
         <router-link to="/company/add_job_posting">New Job posting</router-link>
     </div>
     <div v-else>
-        <h1>You are not company! Please <router-link to="/">Login</router-link></h1>
+        <h1>You are not company! Please <router-link to="/login">Login</router-link></h1>
     </div>
 </template>
 
@@ -29,7 +29,7 @@ export default {
                 this.$router.push("/admin")
             }
             else{
-                this.$router.push("/")
+                this.$router.push("/login")
             }
         }
 
@@ -39,7 +39,7 @@ export default {
         logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("role");
-            this.$router.push("/");
+            this.$router.push("/login");
         }
     }
 

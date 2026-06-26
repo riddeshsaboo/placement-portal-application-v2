@@ -1,9 +1,12 @@
 <template>
     <div v-if="role == 'admin' " class="m-2">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Admin Dashboard</h1>
-            <button class="btn btn-danger" @click="logout"> Logout</button>
-        </div>
+        <nav class="navbar bg-body-tertiary">
+            <div class="container-fluid">
+                <h3 class="fw-bold">Admin Dashboard</h3>
+                <button class="btn btn-danger" @click="logout">Logout </button>
+            </div>
+
+        </nav>
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="card border-success h-100">
@@ -225,7 +228,7 @@
 
     </div>
     <div v-else>
-        <h1>You are not admin! Please <router-link to="/">Login</router-link></h1>
+        <h1>You are not admin! Please <router-link to="/login">Login</router-link></h1>
     </div>
 </template>
 
@@ -264,7 +267,7 @@ export default {
                 this.$router.push("/company")
             }
             else{
-                this.$router.push("/")
+                this.$router.push("/login")
             }
         }
         else{
@@ -280,7 +283,7 @@ export default {
         logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("role");
-            this.$router.push("/");
+            this.$router.push("/login");
         },
 
         async loadData(){

@@ -2,7 +2,7 @@ from flask import Blueprint,request
 from models import * 
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
-from flask_jwt_extended import create_access_token, jwt_required
+from flask_jwt_extended import create_access_token, get_jwt, jwt_required
 
 auth = Blueprint("auth", __name__)
 
@@ -120,9 +120,6 @@ def login():
         return {"message": "Incorrect password"}, 400
     
 
-# @auth.route("/protected")
-# @jwt_required()
-# def protected():
-#     return {
-#         "message": "Access Granted"
-#     }
+    
+
+    

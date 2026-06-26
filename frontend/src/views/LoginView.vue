@@ -1,16 +1,40 @@
 <template>
-    <div>
-        <h1>Login</h1>
-        <input v-model="email" type="email" placeholder="Email">
-        <br><br>
-        <input v-model="password" type="password" placeholder="Password"/>
-        <br><br>
-        <button @click="login">Login</button>
-        <br><br>
-        <h4>New student? <router-link to="/register/student">Register</router-link></h4>
-        <h4>New company? <router-link to="/register/company">Register</router-link></h4>
+<div>
+    <nav class="p-2 bg-body-tertiary">
+        <router-link class="navbar-brand" to="/">
+            <h3 class="fw-bold">Placement Portal V2</h3>
+        </router-link>
+    </nav>
 
+    <div class="container d-flex justify-content-center align-items-center" style="min-height:85vh">
+        <div style="width:420px" class="p-3 bg-body-tertiary rounded border border-primary">
+            <div class="card-header text-center">
+                <h2>Login</h2>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input v-model="email" type="email" class="form-control" placeholder="Enter Email">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <input v-model="password" type="password" class="form-control" placeholder="Enter Password">
+                </div>
+                <button @click="login" class="btn btn-primary w-100">Login</button>
+                <hr>
+                <p class="text-center mb-2">
+                    New Student?
+                    <router-link to="/register/student">Register</router-link>
+                </p>
+                <p class="text-center mb-0">
+                    New Company?
+                    <router-link to="/register/company">Register</router-link>
+                </p>
+            </div>
+        </div>
     </div>
+</div>
 </template>
 
 <script>
@@ -20,9 +44,19 @@ export default {
     data() {
         return {
             email: "",
-            password: ""
+            password: "",
+            isLoggedIn: false,
+            loginRole: null,
         }
     },
+    async mounted(){
+        this.checkLoggedIn()
+        if(this.isLoggedIn){
+            this.$router.push(`/${this.loginRole}`)
+
+        }
+    }
+    ,
 
     methods: {
         async login() {
@@ -54,7 +88,29 @@ export default {
             catch(error){
                 alert(error.response.data.message)
             }
+        },
+
+        checkLoggedIn(){
+            let role = localStorage.getItem("role")
+
+            if(role == "admin"){
+                this.isLoggedIn = true
+                this.loginRole = "admin"
+            }
+            else if(role == "company"){
+                this.isLoggedIn = true
+                this.loginRole = "company"
+            }
+            else if(role == "student"){
+                this.isLoggedIn = true
+                this.loginRole = "student"
+            }
+            else{
+                this.isLoggedIn = false
+                this.loginRole = null
+            }
         }
     }
 }
+
 </script>
