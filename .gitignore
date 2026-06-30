@@ -40,3 +40,6 @@ yarn-error.log*
 # Misc
 # -----------------------
 *.log
+
+# Uploaded Files
+backend/uploads/

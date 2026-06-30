@@ -1,32 +1,53 @@
 <template>
   <div>
-    <h1>Create Job Posting</h1>
-
-    <label>Title</label><br>
-    <input v-model="title" type="text" placeholder="Job Title"><br><br>
-
-    <label>Description</label><br>
-    <textarea v-model="description" placeholder="Job Description"></textarea><br><br>
-
-    <label>Package (LPA)</label><br>
-    <input v-model="package_amount" type="number" placeholder="Package (LPA)"><br><br>
-
-    <label>Skills Required</label><br>
-    <input v-model="skills_required" type="text" placeholder="Python, Vue, SQL"><br><br>
-
-    <label>Minimum CGPA</label><br>
-    <input v-model="min_cgpa" type="number" step="0.1" placeholder="Minimum CGPA"><br><br>
-
-    <label>Job Location</label><br>
-    <input v-model="job_location" type="text" placeholder="Location"><br><br>
-
-    <label>Vacancies</label><br>
-    <input v-model="vacancies" type="number" placeholder="Vacancies"><br><br>
-
-    <label>Deadline</label><br>
-    <input v-model="deadline" type="datetime-local" :min="minDeadline"><br><br>
-
-    <button @click="createJobPosting">Create Job Posting</button>
+    <nav class="p-2 bg-body-tertiary">
+        <router-link class="navbar-brand" to="/">
+            <h3 class="fw-bold">Placement Portal V2</h3>
+        </router-link>
+    </nav>
+    <div class="container d-flex justify-content-center align-items-center mt-3" style="min-height:85vh">
+        <div style="width:420px" class="p-3 bg-body-tertiary rounded border border-info">
+            <div class="card-header text-center">
+                <h2>Add Job Posting</h2>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Title</label><br>
+                    <input v-model="title" type="text" placeholder="Job Title" class="form-control" >
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label><br>
+                    <textarea v-model="description" placeholder="Job Description" class="form-control"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Package (LPA)</label><br>
+                    <input v-model="package_amount" type="number" placeholder="Package (LPA)" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Skills Required</label><br>
+                    <input v-model="skills_required" type="text" placeholder="Python, Vue, SQL">
+                </div>
+                <div class="mb-3">
+                  <label>Minimum CGPA</label><br>
+                  <input v-model="min_cgpa" type="number" step="0.1" placeholder="Minimum CGPA">
+                </div>  
+                <div class="mb-3">
+                  <label>Job Location</label><br>
+                  <input v-model="job_location" type="text" placeholder="Location">
+                </div>
+                <div class="mb-3">
+                  <label>Vacancies</label><br>
+                  <input v-model="vacancies" type="number" placeholder="Vacancies" min="1">
+                </div>
+                <div class="mb-3">
+                  <label>Deadline</label><br>
+                  <input v-model="deadline" type="datetime-local" :min="minDeadline">
+                </div>
+                <button @click="createJobPosting" class="btn btn-info mt-2 w-100">Create Job Posting</button>
+            </div>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -80,6 +101,8 @@ export default {
         alert(response.data.message)
         this.$router.push("/company")
       } catch (error) {
+        console.log(error);
+        
         alert(error.response?.data?.message || "Something went wrong")
       }
     }

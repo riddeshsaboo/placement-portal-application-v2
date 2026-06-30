@@ -45,7 +45,7 @@ class PlacementDrive(db.Model):
     salary = db.Column(db.Float)
     skills_required = db.Column(db.Text)
     min_cgpa = db.Column(db.Float)
-    status = db.Column(db.Enum("pending","approved","closed",name='drive_status'),nullable=False,default="pending")
+    status = db.Column(db.Enum("pending","approved","closed","rejected",name='drive_status'),nullable=False,default="pending")
     company = db.relationship("Company", backref="placement_drives")
     job_location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -59,9 +59,14 @@ class Application(db.Model):
     placement_drive_id = db.Column(db.Integer, db.ForeignKey("placement_drives.id"), nullable=False)
     status = db.Column(db.Enum("applied","shortlisted","interview_scheduled","selected","rejected","placed",name="application_status"), nullable=False, default="applied")
     feedback = db.Column(db.Text)
+    interview_datetime = db.Column(db.DateTime)
+    meeting_link = db.Column(db.String(500))
+    offer_letter = db.Column(db.String(255))
     applied_at = db.Column(db.DateTime, default=datetime.now)
     student = db.relationship("Student",backref="applications")
     placement_drive = db.relationship("PlacementDrive",backref="applications")
+    offer_letter_path = db.Column(db.String(255))
+    joining_date = db.Column(db.Date)
 
     # To Prevent duplicate applications:
     # One Student + One Drive = One Application

@@ -79,7 +79,12 @@
                         <td>{{ company.id }}</td>
                         <td>{{ company.company_name }}</td>
                         <td>{{ company.industry }}</td>
-                        <td>{{ company.approval_status }}</td>
+                        <td>
+                            <span v-if="company.approval_status == 'pending'" class="badge bg-warning">Pending</span>
+                            <span v-if="company.approval_status == 'approved'" class="badge bg-success">Approved</span>
+                            <span v-if="company.approval_status == 'blacklisted'" class="badge bg-dark">Blacklisted</span>
+                            <span v-if="company.approval_status == 'rejected'" class="badge bg-danger">Rejected</span>
+                        </td>
                         <td>
                             <div class="d-flex gap-2">
                             <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm ">Approve</button>
@@ -122,8 +127,8 @@
                             <td>{{ student.branch }}</td>
                             <td>{{ student.contact || "NA" }}</td>
                             <td>
-                                <span v-if="student.is_active == true">Yes</span>
-                                <span v-else>No</span>
+                                <span v-if="student.is_active == true" class="badge bg-success">Yes</span>
+                                <span v-else class="badge bg-danger">No</span>
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
@@ -174,13 +179,19 @@
                             <td>{{ posting.vacancies }}</td>
                             <td>{{ formatDate(posting.created_at) }}</td>
                             <td>{{ formatDate(posting.deadline) }}</td>
-                            <td>{{ posting.status }}</td>
+                            <td>
+                                <span v-if="posting.status == 'pending'" class="badge bg-warning">Pending</span>
+                                <span v-if="posting.status == 'approved'" class="badge bg-success">Approved</span>
+                                <span v-if="posting.status == 'closed'" class="badge bg-danger">Closed</span>
+                                <span v-if="posting.status == 'rejected'" class="badge bg-danger">Rejected</span>
+                            </td>
                             <td>
                                 <div class="d-flex gap-2">
                                 <button v-if="posting.status == 'pending'" @click="updatePostingStatus(posting.id,'approved')" class="btn btn-success btn-sm " >Approve</button>
                                 <button v-if="posting.status == 'pending'" @click="updatePostingStatus(posting.id,'rejected')" class="btn btn-danger btn-sm "> Reject</button>
                                 <button v-if="posting.status == 'approved'" @click="updatePostingStatus(posting.id,'closed')" class="btn btn-danger btn-sm "> Close</button>
                                 <span v-if="posting.status == 'closed'">NA</span>
+                                <span v-if="posting.status == 'rejected'">NA</span>
                                 </div>
                             </td>
                         </tr>

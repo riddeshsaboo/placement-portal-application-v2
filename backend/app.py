@@ -5,6 +5,8 @@ from routes.company import company
 from routes.auth import auth
 from flask_jwt_extended import JWTManager
 from routes.admin import admin
+from routes.student import student
+
 
 from werkzeug.security import generate_password_hash
 
@@ -22,6 +24,8 @@ app.config["JWT_SECRET_KEY"] = "jwt_key"
 app.register_blueprint(auth)
 app.register_blueprint(admin)
 app.register_blueprint(company)
+app.register_blueprint(student)
+
 
 
 db.init_app(app)

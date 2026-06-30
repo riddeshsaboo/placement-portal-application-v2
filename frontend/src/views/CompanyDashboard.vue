@@ -1,26 +1,156 @@
 <template>
-    <div v-if="role == 'company' ">
-        <h1>Welcome Company</h1>
-        <button @click="logout">Logout</button>
-        <br>
-        <br>
-        <router-link to="/company/add_job_posting">New Job posting</router-link>
+    <div v-if="role == 'company' " class="m-2">
+        <nav class="navbar bg-body-tertiary">
+            <div class="container-fluid">
+                <h3 class="fw-bold">Company Dashboard</h3>
+                <button class="btn btn-danger" @click="logout">Logout </button>
+            </div>
+
+        </nav>
+        <div class="card mb-3 mt-3 ">
+            <div class="card-header">
+                <span class="fw-bold">Welcome! {{company_name}}</span>
+            </div>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-success h-100">
+                    <div class="card-body text-center">
+                        <h5 class="text-success">Total Job Postings</h5>
+                        <h2 class="fw-bold">{{ total_job_postings }}</h2>
+                        <hr>
+                        <h5 class="text-success">Active Job Postings</h5>
+                        <h2 class="fw-bold">{{ active_job_postings }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-primary h-100">
+                    <div class="card-body text-center">
+                        <h5 class="text-primary">Pending Job Postings</h5>
+                        <h2 class="fw-bold">{{ pending_job_postings }}</h2>
+                        <hr>
+                        <h5 class="text-primary">Closed Job Postings</h5>
+                        <h2 class="fw-bold">{{ closed_job_postings }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-warning h-100">
+                    <div class="card-body text-center">
+                        <h5 class="text-warning">Received Applications</h5>
+                        <h2 class="fw-bold">{{ received_applications }}</h2>
+                        <hr>
+                        <h5 class="text-warning">Selected Candidates</h5>
+                        <h2 class="fw-bold">{{ selected_candidates }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-info h-100">
+                    <div class="card-body text-center">
+                        <h5 class="text-info">Shortlisted Candidates</h5>
+                        <h2 class="fw-bold">{{ shortlisted_candidates }}</h2>
+                        <hr>
+                        <h5 class="text-info">Interview Scheduled Candidates</h5>
+                        <h2 class="fw-bold">{{ interview_scheduled_candidates }}</h2>
+                    </div>
+                </div>
+            </div>
+        <div>
+            <router-link to="/company/add_job_posting" class="btn btn-info fw-bold">Add Job posting</router-link>
+        </div>
+    </div>
+    <div v-if="job_postings.length > 0" id="job_postings">
+            <h2>Job Postings</h2>
+            <div class="input-group m-2">
+                <input type="search" v-model="search_job" placeholder="Search Job postings by title / company name / status" class="form-control" style="max-width: 370px"  />
+            </div>
+            <div class="table-responsive m-2" style="max-height:400px; overflow-y:auto;">
+                <table class="table table-hover">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Sr No</th>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Salary (LPA)</th>
+                            <th>Min CGPA</th>
+                            <th>Skills required</th>
+                            <th>Vacancies</th>
+                            <th>Created at</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                            <th>Applications</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(posting, index) in filteredJobs" :key="posting.id">
+                            <td>{{ index + 1 }}</td>
+                            <td>{{ posting.id }}</td>
+                            <td>{{ posting.title }}</td>
+                            <td>{{ posting.salary || "Not Disclosed" }}</td>
+                            <td>{{ posting.min_cgpa || "Not Disclosed"}}</td>
+                            <td>{{ posting.skills_required || "Not Disclosed" }}</td>
+                            <td>{{ posting.vacancies }}</td>
+                            <td>{{ formatDate(posting.created_at) }}</td>
+                            <td>{{ formatDate(posting.deadline) }}</td>
+                            <td>
+                                <span v-if="posting.status == 'pending'" class="badge bg-warning">Pending</span>
+                                <span v-if="posting.status == 'approved'" class="badge bg-success">Approved</span>
+                                <span v-if="posting.status == 'closed'" class="badge bg-danger">Closed</span>
+                                <span v-if="posting.status == 'rejected'" class="badge bg-danger">Rejected</span>
+                            </td>
+                            <td>{{ posting.applications }}</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                <!-- <button v-if="posting.status == 'approved'" @click="updatePostingStatus(posting.id,'closed')" class="btn btn-danger btn-sm "> Close</button> -->
+                                <router-link :to="`/company/job_posting/${posting.id}`" class="btn btn-primary btn-sm">Manage</router-link>
+                                <!-- <span v-else >NA</span> -->
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+            </table>
+        </div>
     </div>
     <div v-else>
-        <h1>You are not company! Please <router-link to="/login">Login</router-link></h1>
+        <br><br>
+        <h2>No Job postings yet</h2>
     </div>
+
+
+</div>
+<div v-else>
+    <h1>You are not company! Please <router-link to="/login">Login</router-link></h1>
+</div>
 </template>
 
 <script>
+import axios from 'axios';
 export default {
     data(){
         const role = localStorage.getItem("role");
         return {
-            role : role 
+            role : role ,
+            company_name: "",
+            total_job_postings: 0,
+            active_job_postings: 0,
+            received_applications: 0,
+            pending_job_postings: 0,
+            closed_job_postings: 0,
+            shortlisted_candidates: 0,
+            selected_candidates: 0,
+            interview_scheduled_candidates: 0,
+            job_postings: [],
+            search_job: ""
         }
     },
 
-    mounted() {
+    async mounted() {
         if (this.role !== "company") {
             if(this.role == "student"){
                 this.$router.push("/student")
@@ -33,6 +163,9 @@ export default {
             }
         }
 
+        await this.loadDashboard()
+        await this.loadJobPostings()
+
     },
 
     methods : {
@@ -40,6 +173,47 @@ export default {
             localStorage.removeItem("token");
             localStorage.removeItem("role");
             this.$router.push("/login");
+        },
+        async loadDashboard(){
+            const response = await axios.get("http://127.0.0.1:5000/company/dashboard",{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+            
+            this.company_name = response.data.company_name
+            this.total_job_postings = response.data.total_job_postings
+            this.active_job_postings = response.data.active_job_postings
+            this.received_applications = response.data.received_applications
+            this.pending_job_postings = response.data.pending_job_postings
+            this.closed_job_postings = response.data.closed_job_postings
+            this.shortlisted_candidates = response.data.shortlisted_candidates
+            this.selected_candidates = response.data.selected_candidates
+            this.interview_scheduled_candidates = response.data.interview_scheduled_candidates
+
+            // console.log(response.data)
+        },
+
+        async loadJobPostings(){
+            const response = await axios.get("http://127.0.0.1:5000/company/job_postings",{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+            this.job_postings = response.data; 
+            console.log(this.job_postings)
+        },
+        formatDate(dateString){
+            return new Date(dateString).toLocaleString("en-GB")
+        },
+
+        async updatePostingStatus(posting_id,status){
+            await axios.put(`http://127.0.0.1:5000/company/job_posting/${posting_id}/status`,{status: status},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+            await this.loadJobPostings()
+            await this.loadData()
+        },
+
+    },
+
+    computed : {
+        filteredJobs(){
+            return this.job_postings.filter(job =>
+                job.title.toString().toLowerCase().includes(this.search_job.toLowerCase())
+                ||
+                job.status.toLowerCase().includes(this.search_job.toLowerCase())
+            )
         }
     }
 
