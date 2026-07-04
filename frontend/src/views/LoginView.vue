@@ -85,8 +85,15 @@ export default {
                 }
 
             }
-            catch(error){
-                alert(error.response.data.message)
+            catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
 

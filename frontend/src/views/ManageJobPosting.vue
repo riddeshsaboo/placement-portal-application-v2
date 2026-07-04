@@ -157,7 +157,14 @@ export default {
                 this.job.deadline = new Date(this.job.deadline).toISOString().slice(0,16)
             }
             catch(e){
-                alert(e);
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
                 this.$router.push("/company")
             }
         },
@@ -170,8 +177,14 @@ export default {
                 this.applications = response.data
             }
             catch(e){
-                alert(e.data.message);
-                this.$router.push("/company")
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
 

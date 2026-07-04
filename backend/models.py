@@ -35,6 +35,8 @@ class Student(db.Model):
     resume_path = db.Column(db.String(255))
     contact = db.Column(db.String(255))
     user = db.relationship("User", backref="student", uselist=False)
+    github_url = db.Column(db.String(255))
+    linkedin_url = db.Column(db.String(255))
 
 class PlacementDrive(db.Model):    
     __tablename__ = "placement_drives"
@@ -61,7 +63,6 @@ class Application(db.Model):
     feedback = db.Column(db.Text)
     interview_datetime = db.Column(db.DateTime)
     meeting_link = db.Column(db.String(500))
-    offer_letter = db.Column(db.String(255))
     applied_at = db.Column(db.DateTime, default=datetime.now)
     student = db.relationship("Student",backref="applications")
     placement_drive = db.relationship("PlacementDrive",backref="applications")

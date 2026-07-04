@@ -1,11 +1,10 @@
 import os
 
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, request, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt,get_jwt_identity
 from models import * 
 from datetime import datetime
 from werkzeug.utils import secure_filename
-
 
 
 company = Blueprint("company", __name__)
@@ -340,7 +339,7 @@ def get_application(application_id):
         "applied_at":application.applied_at,
         "interview_datetime":application.interview_datetime,
         "meeting_link":application.meeting_link,
-        "offer_letter_path":application.offer_letter,
+        "offer_letter_path":application.offer_letter_path,
         "joining_date": application.joining_date,
         "student":{
             "id":student.id,
@@ -534,3 +533,53 @@ def select(application_id):
     return {"message" : "Candidate Selected successfully"}, 200
 
 # After being selected its the candidate's call to accept the placement offer or not (first come first serve - as vacancies are limited)
+
+
+@company.route("/company/student/<int:student_id>/resume")
+@jwt_required()
+def download_resume(student_id):
+    jwt_data=get_jwt()
+    if jwt_data["role"]!="company":
+        return {"message":"Access denied"},403
+    
+    user_id=get_jwt_identity()
+    company=Company.query.filter_by(user_id=user_id).first()
+    if not company:
+        return {"message":"Company not found"},404
+    
+    student=Student.query.get(student_id)
+    if not student:
+        return {"message":"Student not found"},404
+    
+    application=Application.query.join(PlacementDrive).filter(Application.student_id==student.id,PlacementDrive.company_id==company.id).first()
+    if not application:
+        return {"message":"Unauthorized"},403
+    
+    if not student.resume_path:
+        return {"message":"Resume not found"},404
+    
+    return send_from_directory(os.path.join("uploads","resume"),student.resume_path,as_attachment=True)
+
+@company.route("/company/application/<int:application_id>/offer_letter")
+@jwt_required()
+def download_offer_letter(application_id):
+    jwt_data=get_jwt()
+    if jwt_data["role"]!="company":
+        return {"message":"Access denied"},403
+    
+    user_id=get_jwt_identity()
+    company=Company.query.filter_by(user_id=user_id).first()
+    if not company:
+        return {"message":"Company not found"},404
+    
+    application=Application.query.get(application_id)
+    if not application:
+        return {"message":"Application not found"},404
+    
+    if application.placement_drive.company_id != company.id:
+        return {"message":"Unauthorized"},403
+    
+    if not application.offer_letter_path:
+        return {"message":"Offer letter not found"},404
+    
+    return send_from_directory(os.path.join("uploads","offer_letters"),application.offer_letter_path,as_attachment=True)

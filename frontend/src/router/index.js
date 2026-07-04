@@ -11,6 +11,8 @@ import AddJobPosting from '../views/AddJobPosting.vue'
 import ManageJobPosting from "../views/ManageJobPosting.vue"
 import StudentJobPosting from "../views/StudentJobPosting.vue"
 import ReviewApplication from "../views/ReviewApplication.vue"
+import ReviewApplicationStudent from "../views/ReviewApplicationStudent.vue"
+import StudentProfile from '../views/StudentProfile.vue'
 
 
 const router = createRouter({
@@ -59,6 +61,14 @@ const router = createRouter({
         {
             path: "/company/application/:id",
             component: ReviewApplication
+        },
+        {
+            path: "/student/application/:id",
+            component: ReviewApplicationStudent
+        },
+        {
+            path: "/student/profile",
+            component: StudentProfile
         }
     ]
 })

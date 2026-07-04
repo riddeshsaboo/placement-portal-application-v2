@@ -30,7 +30,7 @@
                 <tr>
                     <th>Resume</th>
                     <td>
-                        <a :href="application.student.resume" target="_blank">View Resume</a>
+                       <button class="btn btn-primary btn-sm bg-primary my-2 text-white" @click="downloadResume(application.student.id)">View Resume</button>
                     </td>
                 </tr>
             </table>
@@ -64,7 +64,7 @@
                 <tr v-if="application.status == 'selected' || application.status == 'placed'">
                     <th>Offer Letter</th>
                     <td>
-                        <a :href="application.offer_letter_path" target="_blank">View Offer Letter</a>
+                        <button class="btn btn-info bg-info btn-sm my-2" @click="downloadOfferLetter(application.id)">View Offer Letter</button>
                     </td>
                 </tr>
                 <tr v-if="application.status == 'selected' || application.status == 'placed'">
@@ -176,7 +176,14 @@ export default{
                     await this.loadApplication()
                 }
             }catch(e){
-                alert(e.response?.data?.message || "Something went wrong")
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
         async reject(){
@@ -189,7 +196,14 @@ export default{
                     await this.loadApplication()
                 }
             }catch(e){
-                alert(e.response?.data?.message || "Something went wrong")
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
 
@@ -221,9 +235,14 @@ export default{
                     await this.loadApplication()
                 }
             }catch(e){
-                console.log(e);
-                alert(e.response?.data?.message || "Something went wrong") 
-               
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
                 
             }
         },
@@ -248,13 +267,55 @@ export default{
                     await this.loadApplication()
                 }
             }catch(e){
-                alert(e.response?.data?.message || "Something went wrong")
-                console.log(e)
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
 
         selectOfferLetter(event){
             this.offer_letter = event.target.files[0]
+        },
+
+        async downloadResume(student_id){
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/company/student/${student_id}/resume`,{responseType:"blob",headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+
+                const url = window.URL.createObjectURL(response.data)
+                window.open(url,"_blank")
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+        },
+
+        async downloadOfferLetter(application_id){
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/company/application/${application_id}/offer_letter`,{responseType:"blob",headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+
+                const url = window.URL.createObjectURL(response.data)
+                window.open(url,"_blank")
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
         }
 
 
