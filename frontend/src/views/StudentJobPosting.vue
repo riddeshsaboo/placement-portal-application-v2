@@ -59,8 +59,20 @@ export default{
     },
     methods:{
         async loadJob(){
-            const response = await axios.get(`http://127.0.0.1:5000/student/job_posting/${this.$route.params.id}`,{ headers:{ Authorization:`Bearer ${localStorage.getItem("token")}`} })
-            this.job=response.data
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/student/job_posting/${this.$route.params.id}`,{ headers:{ Authorization:`Bearer ${localStorage.getItem("token")}`} })
+                this.job=response.data
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong")
+                this.$router.push("/student")
+            }
         },
 
         async applyJob(){

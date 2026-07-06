@@ -13,43 +13,74 @@
       </div>
     </nav> 
 
-    <div class="card mt-3" v-if="jobs.length > 0">
-      <div class="card-header">Available Job Postings</div>
-      <div class="card-body">
-        <input class="form-control mb-3" placeholder="Search using company name or job title or skills required" v-model="search_job">
-        <table class="table table-hover" v-if="filteredJobs.length > 0">
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Company</th>
-              <th>Title</th>
-              <th>Package(LPA)</th>
-              <th>Minimum CGPA</th>
-              <th>Skills Required</th>
-              <th>Deadline</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(job, index) in filteredJobs" :key="job.id">
-              <td>{{ index + 1 }}</td>
-              <td>{{ job.company_name }}</td>
-              <td>{{ job.title }}</td>
-              <td>{{ job.salary || "Not Disclosed" }}</td>
-              <td>{{ job.min_cgpa || "Not Required" }}</td>
-              <td>{{ job.skills_required || "Not Disclosed" }}</td>
-              <td>{{ formatDate(job.deadline) }}</td>
-              <td><router-link :to="`/student/job_posting/${job.id}`" class="btn btn-primary btn-sm">View</router-link></td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-else>
-          No job postings found try searching something different
+    <div v-if="!dashboard.placed">
+      <div class="card mt-3" v-if="jobs.length > 0">
+        <div class="card-header">Available Job Postings</div>
+        <div class="card-body">
+          <input class="form-control mb-3" placeholder="Search using company name or job title or skills required" v-model="search_job">
+          <table class="table table-hover" v-if="filteredJobs.length > 0">
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Company</th>
+                <th>Title</th>
+                <th>Package(LPA)</th>
+                <th>Minimum CGPA</th>
+                <th>Skills Required</th>
+                <th>Deadline</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(job, index) in filteredJobs" :key="job.id">
+                <td>{{ index + 1 }}</td>
+                <td>{{ job.company_name }}</td>
+                <td>{{ job.title }}</td>
+                <td>{{ job.salary || "Not Disclosed" }}</td>
+                <td>{{ job.min_cgpa || "Not Required" }}</td>
+                <td>{{ job.skills_required || "Not Disclosed" }}</td>
+                <td>{{ formatDate(job.deadline) }}</td>
+                <td><router-link :to="`/student/job_posting/${job.id}`" class="btn btn-primary btn-sm">View</router-link></td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else>
+            No job postings found try searching something different
+          </div>
         </div>
       </div>
+      <div v-else class="card mt-3">
+        <span class="fw-bold m-2">No job postings available</span>
+      </div>
     </div>
-    <div v-else class="card mt-3">
-      <span class="fw-bold m-2">No job postings available</span>
+    <div v-else>
+      <div class="card mt-3">
+        <div class="card-header">Placement Details</div>
+        <div class="card-body">
+          <table class="table table-hover">
+            <tr>
+              <th>Company Name:</th>
+              <td>{{ dashboard.placement.company_name }}</td>
+            </tr>
+            <tr>
+              <th>Position (job title):</th>
+              <td>{{ dashboard.placement.position }}</td>
+            </tr>
+            <tr>
+              <th>Salar(LPA):</th>
+              <td>{{ dashboard.placement.salary }}</td>
+            </tr>
+            <tr>
+              <th>Joining Date:</th>
+              <td>{{ formatDate(dashboard.placement.joining_date) }}</td>
+            </tr>
+            <tr>
+              <th>View Application:</th>
+              <router-link :to="`/student/application/${dashboard.placement.application_id}`" class="btn btn-info bg-info btn-sm">View Application</router-link>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
     
 
@@ -105,7 +136,8 @@ export default {
       search_job: "",
       applications: [],
       dashboard : {
-        student: {}
+        student: {},
+        placement: {}
       }
     };
   },
@@ -152,7 +184,7 @@ export default {
         console.log(e);
         console.log(e.response);
         console.log(e.response?.data);
-        alert(e.response.data.message || "Something went wrong");
+        alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
       }
     },
     formatDate(date) {

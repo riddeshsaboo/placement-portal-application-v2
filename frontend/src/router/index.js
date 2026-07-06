@@ -13,6 +13,8 @@ import StudentJobPosting from "../views/StudentJobPosting.vue"
 import ReviewApplication from "../views/ReviewApplication.vue"
 import ReviewApplicationStudent from "../views/ReviewApplicationStudent.vue"
 import StudentProfile from '../views/StudentProfile.vue'
+import AdminStudentProfile from '../views/AdminStudentProfile.vue'
+import AdminCompanyProfile from '../views/AdminCompanyProfile.vue'
 
 
 const router = createRouter({
@@ -69,6 +71,14 @@ const router = createRouter({
         {
             path: "/student/profile",
             component: StudentProfile
+        },
+        {
+            path: "/admin/student/:id",
+            component: AdminStudentProfile
+        },
+        {
+            path: "/admin/company/:id",
+            component: AdminCompanyProfile
         }
     ]
 })

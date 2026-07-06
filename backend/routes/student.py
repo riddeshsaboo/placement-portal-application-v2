@@ -28,6 +28,20 @@ def dashboard():
     placed = Application.query.filter_by(student_id = student.id, status = 'placed').count()
     rejected = Application.query.filter_by(student_id = student.id, status = 'rejected').count()
 
+    placement = Placement.query.filter_by(student_id=student.id).first()
+
+    if placement :
+        application = Application.query.filter_by(student_id = placement.student_id, status = 'placed').first()
+        placement_details = {
+            "application_id" : application.id,
+            "company_name" : placement.company.company_name ,
+            "position" : placement.position ,
+            "salary" : placement.salary ,
+            "joining_date" : placement.joining_date,
+        }
+    else :
+        placement_details = None
+
     return {
         "student" : {
             "id" : student.id ,
@@ -39,7 +53,8 @@ def dashboard():
         "interview_scheduled" : interview_scheduled,
         "selected" : selected,
         "placed" : placed,
-        "rejected" : rejected
+        "rejected" : rejected,
+        "placement" : placement_details
     }, 200
 
 @student.route("/student/job_postings", methods=["GET"])
@@ -72,15 +87,18 @@ def get_job_posting(posting_id):
     jwt_data = get_jwt()
     if jwt_data["role"] != "student":
         return {"message":"Access denied"},403
+    
+    user_id = get_jwt_identity()
+    student = Student.query.filter_by(user_id=user_id).first()
+    alreadyPlaced = Placement.query.filter_by(student_id=student.id).first()
+    if alreadyPlaced:
+        return {"message":"You are already placed, you cannot apply or view job postings"},400
 
     posting = PlacementDrive.query.filter_by(id=posting_id,status="approved").first()
     if not posting:
         return {"message":"Job posting not found"},404
 
     company = Company.query.get(posting.company_id)
-    user_id = get_jwt_identity()
-    student = Student.query.filter_by(user_id=user_id).first()
-
     application = Application.query.filter_by(student_id=student.id,placement_drive_id=posting.id).first()
     if application : 
         already_applied = True 
@@ -119,10 +137,18 @@ def apply_job(posting_id):
     student = Student.query.filter_by(user_id=user_id).first()
     if not student:
         return {"message":"Student not found"},404
+    
+    alreadyPlaced = Placement.query.filter_by(student_id=student.id).first()
+    if alreadyPlaced:
+        return {"message":"You are already placed, you cannot apply or view job postings"},400
 
     posting = PlacementDrive.query.filter_by(id=posting_id,status="approved").first()
     if not posting:
         return {"message":"Job posting not found"},404
+    
+    alreadyPlaced = Placement.query.filter_by(student_id=student.id).first()
+    if alreadyPlaced:
+        return {"message":"You are already placed and cannot apply for new placement drives"},400
 
     if posting.deadline <= datetime.now():
         return {"message":"Application deadline has passed"},400
@@ -382,9 +408,11 @@ def update_profile():
 
                 unique_id = uuid.uuid4()
                 filename = f"Resume_{student.id}__{unique_id}.pdf"
-                os.makedirs("uploads/offer_letters", exist_ok=True)
-                path = os.path.join("uploads","offer_letters",filename)
+                os.makedirs("uploads/resume", exist_ok=True)
+                path = os.path.join("uploads","resume",filename)
+                print(path)
                 resume.save(path)
+                print(os.path.exists(path))
                 student.resume_path = filename
 
             db.session.commit()
@@ -415,7 +443,9 @@ def update_profile():
                 filename = f"Resume_{student.id}__{unique_id}.pdf"
                 os.makedirs("uploads/resume", exist_ok=True)
                 path = os.path.join("uploads","resume",filename)
+                print(path)
                 resume.save(path)
+                print(os.path.exists(path))
                 student.resume_path = filename
             
             db.session.commit()

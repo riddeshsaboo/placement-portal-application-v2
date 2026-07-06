@@ -87,11 +87,12 @@
                         </td>
                         <td>
                             <div class="d-flex gap-2">
-                            <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm ">Approve</button>
-                            <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'rejected')" class="btn btn-danger btn-sm ">Reject</button>
-                            <button v-if="company.approval_status == 'approved'" @click="update_company_status(company.id,'blacklisted')" class="btn btn-danger btn-sm">Blacklist</button>
-                            <button v-if="company.approval_status == 'rejected'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm">Approve</button>
-                            <button v-if="company.approval_status == 'blacklisted'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm">Unblacklist</button>
+                                <router-link :to = "`/admin/company/${company.id}`" class="btn btn-info btn-sm">View Profile</router-link>
+                                <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm ">Approve</button>
+                                <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'rejected')" class="btn btn-danger btn-sm ">Reject</button>
+                                <button v-if="company.approval_status == 'approved'" @click="update_company_status(company.id,'blacklisted')" class="btn btn-danger btn-sm">Blacklist</button>
+                                <button v-if="company.approval_status == 'rejected'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm">Approve</button>
+                                <button v-if="company.approval_status == 'blacklisted'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm">Unblacklist</button>
                             </div>
                         </td>
                     </tr>
@@ -132,8 +133,9 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
-                                <button v-if="student.is_active == true" @click="update_student_status(student.id,0)" class="btn btn-danger btn-sm ">Deactivate</button>
-                                <button v-else @click="update_student_status(student.id,1)" class="btn btn-success btn-sm ">Activate</button>
+                                    <router-link :to = "`/admin/student/${student.id}`" class="btn btn-info btn-sm">View Profile</router-link>
+                                    <button v-if="student.is_active == true" @click="update_student_status(student.id,0)" class="btn btn-danger btn-sm ">Deactivate</button>
+                                    <button v-else @click="update_student_status(student.id,1)" class="btn btn-success btn-sm ">Activate</button>
                                 </div>
                             </td>
                         </tr>
@@ -218,7 +220,9 @@
                             <th>Company Name</th>
                             <th>Job title</th>
                             <th>Status</th>
-                            <th>Applied at</th>
+                            <th>Applied on</th>
+                            <th>Joining Date</th>
+                            <th>Offer Letter</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -227,7 +231,21 @@
                             <td>{{ appl.student_name }}</td>
                             <td>{{ appl.company_name }}</td>
                             <td>{{ appl.job_title }}</td>
+                            <td>
+                                <span class="badge bg-warning text-dark" v-if="appl.status === 'applied'">Applied</span>
+                                <span class="badge bg-primary" v-else-if="appl.status === 'shortlisted'">Shortlisted</span>
+                                <span class="badge bg-primary-subtle" v-else-if="appl.status === 'interview_scheduled'">Interview Scheduled</span>
+                                <span class="badge bg-success" v-else-if="appl.status === 'selected'">Selected</span>
+                                <span class="badge bg-success" v-else-if="appl.status === 'placed'">Placed</span>
+                                <span class="badge bg-danger" v-else>Rejected</span>
+                            </td>
                             <td>{{ formatDate(appl.applied_at) }}</td>
+                            <td v-if="appl.joining_date">{{ formatDate(appl.joining_date) }}</td>
+                            <td v-else>NA</td>
+                            <td v-if="appl.offer_letter">
+                                <button @click="download_offer_letter(appl.id)" class="btn btn-info">View offer letter</button>
+                            </td>
+                            <td v-else>NA</td>
                         </tr>
                     </tbody>
             </table>
@@ -285,7 +303,8 @@ export default {
             await this.loadData()
             await this.loadCompanies() 
             await this.loadStudents()
-            await this.loadJobPostings()
+            await this.loadJobPostings(),
+            await this.loadApplications()
         }
 
     },
@@ -354,9 +373,40 @@ export default {
         },
 
         async loadApplications(){
-            const response = await axios.get("http://127.0.0.1:5000/admin/applications", {headers: {Authorization:`Bearer ${localStorage.getItem("token")}`}})
-            this.applications = response.data
+            try {
+                const response = await axios.get("http://127.0.0.1:5000/admin/applications", {headers: {Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                this.applications = response.data
+            } catch (e) {
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+            // console.log(this.applications);
         },
+
+        async download_offer_letter(application_id){
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/admin/application/${application_id}/offer_letter`,{responseType: "blob",headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+
+                const url = window.URL.createObjectURL(response.data)
+                window.open(url,"_blank")
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                // console.log(e.response);
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+        }
     },
 
     computed: {
