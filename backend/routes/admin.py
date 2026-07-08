@@ -1,8 +1,9 @@
 import os
-
 from flask import Blueprint, request, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt
+from flask_mail import Message
 from models import * 
+from extentions import mail
 
 admin = Blueprint("admin", __name__)
 
@@ -340,3 +341,47 @@ def get_company_job_postings(c_id):
         })
 
     return result, 200
+
+# from tasks import send_interview_reminders
+
+# @admin.route("/admin/test_reminders")
+# # @jwt_required()
+# def test_reminders():
+
+#     send_interview_reminders.delay()
+
+#     return {
+#         "message": "Reminder task queued."
+#     }, 200
+
+
+
+@admin.route("/admin/reminders", methods= ["POST"])
+@jwt_required()
+def reminders():
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "admin":
+        return {"message": "Access denied"}, 403
+
+    from tasks import send_interview_reminders
+
+    send_interview_reminders.delay()
+
+    return {
+        "message": "Reminderd queued"
+    }, 200
+
+@admin.route("/admin/monthly_report", methods= ["POST"])
+@jwt_required()
+def generate_monthly_report():
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "admin":
+        return {"message": "Access denied"}, 403
+    
+    from tasks import generate_monthly_report
+
+    generate_monthly_report.delay()
+
+    return {
+        "message": "Monthly Report Generation queued"
+    }, 200

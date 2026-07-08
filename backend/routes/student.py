@@ -1,10 +1,15 @@
 import os
 
-from flask import Blueprint, request, send_from_directory
+from flask import Blueprint, request, send_file, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt,get_jwt_identity
 from models import * 
 from datetime import datetime
 import uuid
+
+from flask_mail import Message
+from extentions import mail
+from flask import current_app
+
 
 student = Blueprint("student", __name__)
 
@@ -492,3 +497,78 @@ def download_offer_letter(application_id):
         return {"message":"Offer letter not found"},404
     
     return send_from_directory(os.path.join("uploads","offer_letters"),application.offer_letter_path,as_attachment=True)
+
+@student.route("/student/export", methods=["POST"])
+@jwt_required()
+def export_csv():
+    from tasks import export_student_applications
+    
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "student":
+        return {"message":"Access denied"},403
+
+    user_id = get_jwt_identity()
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student:
+        return {"message":"Student not found"},404
+
+    rows = []
+    for application in student.applications:
+        rows.append({
+            "Company": application.placement_drive.company.company_name,
+            "Job Title": application.placement_drive.title,
+            "Status": application.status,
+            "Applied On": str(application.applied_at),
+            "Joining Date": str(application.joining_date)
+        })
+    task = export_student_applications.delay(student.id, rows)
+
+    return {
+        "message":"CSV export started successfully",
+        "task_id": task.id
+    },200
+
+@student.route("/student/export/download", methods=["GET"])
+@jwt_required()
+def download_export():
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "student":
+        return {"message":"Access denied"},403
+
+    user_id = get_jwt_identity()
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student:
+        return {"message":"Student not found"},404
+
+    filename = f"student_{student.id}_applications.csv"
+    path = os.path.join("exports/student", filename)
+    if not os.path.exists(path):
+        return {"message":"Export not found"},404
+
+    return send_file(path, as_attachment=True)
+
+
+@student.route("/student/test_mail")
+def test_mail():
+
+    msg = Message(
+    subject="Placement Portal Test",
+    sender=("Placement Portal", "riddeshsaboo10@gmail.com"),
+    recipients=["riddeshsaboo10@gmail.com"]
+    )
+
+    msg.body = """Hello!
+
+This is a test mail from Placement Portal.
+
+If you received this, Flask-Mail is configured successfully.
+"""
+
+    print(msg.sender)
+
+    mail.send(msg)
+
+    return {
+        "message":"Mail sent successfully"
+    },200
+

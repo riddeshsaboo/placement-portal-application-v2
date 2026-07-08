@@ -3,10 +3,13 @@
         <nav class="navbar bg-body-tertiary">
             <div class="container-fluid">
                 <h3 class="fw-bold">Company Dashboard</h3>
-                <button class="btn btn-danger" @click="logout">Logout </button>
+                <div>
+                    <button class="btn btn-success" @click="exportCSV">Export Applications CSV</button>
+                    <button v-if="export_ready" class="btn btn-primary ms-2" @click="downloadCSV">Download CSV</button>
+                    <button class="btn btn-danger m-1" @click="logout">Logout </button>
+                </div>
             </div>
-
-        </nav>
+        </nav> 
         <div class="card mb-3 mt-3 ">
             <div class="card-header">
                 <span class="fw-bold">Welcome! {{company_name}}</span>
@@ -146,7 +149,8 @@ export default {
             selected_candidates: 0,
             interview_scheduled_candidates: 0,
             job_postings: [],
-            search_job: ""
+            search_job: "",
+            export_ready: false 
         }
     },
 
@@ -204,6 +208,33 @@ export default {
             await this.loadJobPostings()
             await this.loadData()
         },
+        async exportCSV(){
+            try{
+                this.export_ready = false
+                await axios.post("http://127.0.0.1:5000/company/export",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                alert("CSV generated successfully.")
+                this.export_ready = true
+            }
+            catch(e){
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong")
+            } 
+        },
+
+        async downloadCSV(){
+            try{
+                const response = await axios.get("http://127.0.0.1:5000/company/export/download",{responseType:"blob", headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                const url = window.URL.createObjectURL(response.data)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = "applications.csv"
+                a.click()
+
+                window.URL.revokeObjectURL(url)
+            }
+            catch(e){
+                alert(e.response?.data?.message || "Something went wrong")
+            }
+        }
 
     },
 

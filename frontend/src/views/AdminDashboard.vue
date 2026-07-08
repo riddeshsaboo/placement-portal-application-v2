@@ -3,7 +3,11 @@
         <nav class="navbar bg-body-tertiary">
             <div class="container-fluid">
                 <h3 class="fw-bold">Admin Dashboard</h3>
-                <button class="btn btn-danger" @click="logout">Logout </button>
+                <div>
+                    <button class="btn btn-success" @click="monthlyReport">Export Monthly Report</button>
+                    <button class="btn btn-primary ms-2" @click="sendReminders">Send Interview Reminders</button>
+                    <button class="btn btn-danger m-1" @click="logout">Logout </button>
+                </div>
             </div>
 
         </nav>
@@ -406,7 +410,43 @@ export default {
                 // console.log(e.response);
                 alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
-        }
+        },
+
+        async monthlyReport(){
+            try{
+                const response = await axios.post("http://127.0.0.1:5000/admin/monthly_report",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                alert(response.data.message || "Success");
+                
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                // console.log(e.response);
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+        },
+
+        async sendReminders(){
+            try{
+                const response = await axios.post("http://127.0.0.1:5000/admin/reminders",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                alert(response.data.message || "Success");
+
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                // console.log(e.response);
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+        },
     },
 
     computed: {

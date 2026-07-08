@@ -1,11 +1,10 @@
 import os
 
-from flask import Blueprint, current_app, request, send_from_directory
+from flask import Blueprint, current_app, request, send_file, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt,get_jwt_identity
 from models import * 
 from datetime import datetime
 from werkzeug.utils import secure_filename
-
 
 company = Blueprint("company", __name__)
 
@@ -583,3 +582,63 @@ def download_offer_letter(application_id):
         return {"message":"Offer letter not found"},404
     
     return send_from_directory(os.path.join("uploads","offer_letters"),application.offer_letter_path,as_attachment=True)
+
+@company.route("/company/export", methods=["POST"])
+@jwt_required()
+def export_csv():
+    from tasks import export_company_applications
+
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "company":
+        return {"message":"Access denied"},403
+
+    user_id = get_jwt_identity()
+    company = Company.query.filter_by(user_id=user_id).first()
+    if not company:
+        return {"message":"Company not found"},404
+    
+    placementDrives = PlacementDrive.query.filter_by(company_id = company.id).all()
+    
+    # Student Name
+    # Job Title
+    # Application Status
+    # Applied On
+    # Joining Date
+
+    rows = []
+    for posting in placementDrives:
+
+        applications = Application.query.filter_by(placement_drive_id = posting.id).all()
+        for application in applications:
+            rows.append({
+                "Student Name": application.student.full_name,
+                "Job Title": application.placement_drive.title,
+                "Application Status": application.status,
+                "Applied On": str(application.applied_at),
+                "Joining Date": str(application.joining_date)
+            })
+    task = export_company_applications.delay(company.id, rows)
+
+    return {
+        "message":"CSV export started successfully",
+        "task_id": task.id
+    },200
+
+@company.route("/company/export/download", methods=["GET"])
+@jwt_required()
+def download_export():
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "company":
+        return {"message":"Access denied"},403
+
+    user_id = get_jwt_identity()
+    company = Company.query.filter_by(user_id=user_id).first()
+    if not company:
+        return {"message":"Company not found"},404
+
+    filename = f"company_{company.id}_applications.csv"
+    path = os.path.join("exports/company", filename)
+    if not os.path.exists(path):
+        return {"message":"Export not found"},404
+
+    return send_file(path, as_attachment=True)

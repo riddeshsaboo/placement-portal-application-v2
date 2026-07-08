@@ -4,6 +4,8 @@
       <div class="container-fluid">
           <h3 class="fw-bold">Student Dashboard</h3>
           <div>
+            <button class="btn btn-success" @click="exportCSV">Export Applications CSV</button>
+            <button v-if="export_ready" class="btn btn-primary ms-2" @click="downloadCSV">Download CSV</button>
             <router-link to="/student/profile" class="btn btn-outline-secondary d-inline-flex align-items-center m-2 rounded-pill transition-all">
               <img src="../../public/user-profile.png" class="rounded-circle border border-2 border-white" alt="Profile Avatar"  style="width: 28px; height: 28px; object-fit: cover;">
               <span class="fw-semibold text-dark small">{{dashboard.student.full_name}}</span>
@@ -132,14 +134,15 @@ import axios from "axios";
 export default {
   data() {
     return {
-      jobs: [],
-      search_job: "",
-      applications: [],
-      dashboard : {
-        student: {},
-        placement: {}
-      }
-    };
+      "jobs": [],
+      "search_job": "",
+      "applications": [],
+      "dashboard" : {
+        "student": {},
+        "placement": {}
+      },
+      "export_ready":false
+    }
   },
   async mounted() {
     await this.loadDashboard()
@@ -255,6 +258,34 @@ export default {
           }
           alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
         }
+    },
+
+    async exportCSV(){
+      try{
+          this.export_ready = false
+          await axios.post("http://127.0.0.1:5000/student/export",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+          alert("CSV generated successfully.")
+          this.export_ready = true
+      }
+      catch(e){
+          alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong")
+      } 
+    },
+
+    async downloadCSV(){
+      try{
+          const response = await axios.get("http://127.0.0.1:5000/student/export/download",{responseType:"blob", headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+          const url = window.URL.createObjectURL(response.data)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = "applications.csv"
+          a.click()
+
+          window.URL.revokeObjectURL(url)
+      }
+      catch(e){
+          alert(e.response?.data?.message || "Something went wrong")
+      }
     }
   },
   computed: {

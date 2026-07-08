@@ -1,0 +1,11 @@
+MAIL_SERVER = "smtp-relay.brevo.com"
+MAIL_PORT = 587
+MAIL_USE_TLS = True
+MAIL_USE_SSL = False
+
+MAIL_USERNAME = "YOUR_BREVO_USERNAME"
+MAIL_PASSWORD = "YOUR_BREVO_SMTP_KEY"
+
+MAIL_DEFAULT_SENDER = "your-email@example.com"
+
+JWT_SECRET_KEY = "jwt_key"
