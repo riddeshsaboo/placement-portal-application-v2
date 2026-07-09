@@ -21,6 +21,42 @@ A full-stack Placement Portal developed using Flask, Vue.js and SQLite for manag
 - Asynchronous CSV Export
 - Email Notifications
 
+## Performance Optimization
+
+The application uses Redis for API caching to improve response times.
+
+### Cached APIs
+
+- Admin Dashboard
+
+- Company Dashboard
+
+- Student Dashboard
+
+- Student Job Listings
+
+- Company Job Postings
+
+- Company Applications
+
+### Cache Policy
+
+- Cache Backend: Redis
+
+- Cache Expiry: 60 seconds
+
+- Cache Refresh: Cache is cleared whenever placement-related data changes (job postings, applications, placements, approvals, etc.).
+
+---
+
+### Running Redis
+
+```bash
+
+redis-server
+
+```
+
 ### Technologies
 
 Backend

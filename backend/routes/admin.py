@@ -3,12 +3,13 @@ from flask import Blueprint, request, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt
 from flask_mail import Message
 from models import * 
-from extentions import mail
+from extentions import mail, cache
 
 admin = Blueprint("admin", __name__)
 
 @admin.route("/admin/dashboard", methods = ['GET'])
 @jwt_required()
+@cache.memoize()
 def dashboard():
     jwt_data = get_jwt()
     if jwt_data["role"] != "admin":
@@ -83,6 +84,7 @@ def update_company_status(company_id):
     else : 
         company.user.is_active = True 
     db.session.commit()
+    cache.clear()
 
     return {"message": f"Company status changed to {new_status}"}, 200
 
@@ -138,8 +140,9 @@ def update_student_status(student_id):
 
     student.user.is_active = new_status
     db.session.commit()
+    cache.clear()
 
-    print("Done")
+    # print("Done")
 
     return {"message": f"Student status changed to {new_status}"}, 200
 
@@ -186,6 +189,7 @@ def update_job_posting_status(posting_id):
 
     posting.status = status
     db.session.commit()
+    cache.clear()
 
     return {"message": "Status updated"}, 200
 

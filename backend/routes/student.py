@@ -7,14 +7,15 @@ from datetime import datetime
 import uuid
 
 from flask_mail import Message
-from extentions import mail
-from flask import current_app
+from extentions import mail, cache
+# from flask import current_app
 
 
 student = Blueprint("student", __name__)
 
 @student.route('/student/dashboard', methods=['GET'])
 @jwt_required()
+@cache.memoize()
 def dashboard():
     jwt_data = get_jwt()
     if jwt_data["role"] != "student":
@@ -64,6 +65,7 @@ def dashboard():
 
 @student.route("/student/job_postings", methods=["GET"])
 @jwt_required()
+@cache.memoize()
 def get_job_postings():
     jwt_data = get_jwt()
     if jwt_data["role"] != "student":
@@ -88,6 +90,7 @@ def get_job_postings():
 
 @student.route("/student/job_posting/<int:posting_id>", methods=["GET"])
 @jwt_required()
+@cache.memoize()
 def get_job_posting(posting_id):
     jwt_data = get_jwt()
     if jwt_data["role"] != "student":
@@ -168,6 +171,7 @@ def apply_job(posting_id):
     application = Application(student_id=student.id,placement_drive_id=posting.id,status="applied")
     db.session.add(application)
     db.session.commit()
+    cache.clear()
     return {"message":"Application submitted successfully"},201
 
 
@@ -227,6 +231,7 @@ def accept_offer(application_id):
         application.status = 'rejected'
         application.feedback = "Application auto rejected since vacancies were full"
         db.session.commit()
+        cache.clear()
         return {"message" : "All vacancies are full, cannot be placed, auto rejecting the applicatin"}, 400
 
     
@@ -251,6 +256,7 @@ def accept_offer(application_id):
         application.feedback = "Application closed automatically as the student accepted another placement offer."
 
     db.session.commit()
+    cache.clear()
     return {"message": "Offer accepted successfully"}, 200
 
 @student.route("/student/application/<int:application_id>/reject", methods=["PUT"])
@@ -276,6 +282,7 @@ def reject_offer(application_id):
     application.feedback = 'Offer rejected by the Candidate'
 
     db.session.commit()
+    cache.clear()
     return {"message": "Offer rejected successfully"}, 200
 
 @student.route("/student/application/<int:application_id>", methods=["GET"])
@@ -421,6 +428,7 @@ def update_profile():
                 student.resume_path = filename
 
             db.session.commit()
+            cache.clear()
             return {"message": "Profile updated successfully"}, 200
 
         else :
@@ -454,6 +462,7 @@ def update_profile():
                 student.resume_path = filename
             
             db.session.commit()
+            cache.clear()
             return {"message": "Profile updated successfully"}, 200
     except:
         return {"message": "Something went wrong"}, 500

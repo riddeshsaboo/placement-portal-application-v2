@@ -1,6 +1,6 @@
 import os
-
-from flask import Blueprint, current_app, request, send_file, send_from_directory
+from extentions import cache
+from flask import Blueprint, request, send_file, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt,get_jwt_identity
 from models import * 
 from datetime import datetime
@@ -65,12 +65,14 @@ def addjobposting():
 
     db.session.add(job_posting)
     db.session.commit()
+    cache.clear()
 
     return {"message": "Job posting created successfully"}, 201
 
 
 @company.route("/company/dashboard", methods=["GET"])
 @jwt_required()
+@cache.memoize()
 def company_dashboard():
     jwt_data = get_jwt()
     if jwt_data["role"] != "company":
@@ -93,7 +95,7 @@ def company_dashboard():
     received_applications = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id).count()
     shortlisted_candidates = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id,Application.status == "shortlisted").count()
 
-    print(total_job_postings)
+    # print(total_job_postings)
     return {
         "company_name": company_name,
         "total_job_postings": total_job_postings,
@@ -108,6 +110,7 @@ def company_dashboard():
 
 @company.route("/company/job_postings", methods=['GET'])
 @jwt_required()
+@cache.memoize()
 def get_job_postings():
     jwt_data = get_jwt()
     if jwt_data["role"] != "company":
@@ -164,6 +167,7 @@ def update_job_posting_status(posting_id):
 
     posting.status = status
     db.session.commit()
+    cache.clear()
 
     return {"message": "Status updated"}, 200
 
@@ -202,6 +206,7 @@ def manage_job(posting_id):
 
 @company.route("/company/job_posting/<int:posting_id>/applications", methods=["GET"])
 @jwt_required()
+@cache.memoize()
 def get_applications(posting_id):
     jwt_data = get_jwt()
     if jwt_data["role"] != "company":
@@ -305,6 +310,7 @@ def editjobposting(posting_id):
     jobPosting.vacancies = vacancies      
 
     db.session.commit()
+    cache.clear()
 
     return {"message": "Job posting updated successfully"}, 200
 
@@ -384,11 +390,12 @@ def shortlist(application_id):
     data = request.get_json()
     feedback = data.get("feedback") or None 
 
-    print(feedback)
+    # print(feedback)
 
     application.feedback = feedback
     application.status = 'shortlisted'
     db.session.commit() 
+    cache.clear()
 
     return {"message" : "Candidate Shortlisted successfully"}, 200
 
@@ -419,11 +426,12 @@ def reject(application_id):
     data = request.get_json()
     feedback = data.get("feedback") or None 
 
-    print(feedback)
+    # print(feedback)
     
     application.feedback = feedback
     application.status = 'rejected'
     db.session.commit() 
+    cache.clear()
 
     return {"message" : "Candidate rejected successfully"}, 200
 
@@ -472,6 +480,7 @@ def interview_scheduled(application_id):
     application.meeting_link = meeting_link
     application.status = 'interview_scheduled'
     db.session.commit() 
+    cache.clear()
 
     return {"message" : "Inteview Scheduled for Candidate successfully"}, 200
 
@@ -528,6 +537,7 @@ def select(application_id):
     application.feedback = feedback
     application.status = "selected"
     db.session.commit() 
+    cache.clear()
 
     return {"message" : "Candidate Selected successfully"}, 200
 

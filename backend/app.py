@@ -1,5 +1,5 @@
 from flask import Flask
-from extentions import db, mail
+from extentions import db, mail, cache
 from models import *
 from routes.company import company
 from routes.auth import auth
@@ -27,8 +27,13 @@ def create_app():
     app.config["MAIL_PASSWORD"] = config.MAIL_PASSWORD
     app.config["MAIL_DEFAULT_SENDER"] = config.MAIL_DEFAULT_SENDER
 
+    app.config["CACHE_TYPE"] = "RedisCache"
+    app.config["CACHE_REDIS_URL"] = "redis://localhost:6379/1"
+    app.config["CACHE_DEFAULT_TIMEOUT"] = 60
+
     db.init_app(app)
     mail.init_app(app)
+    cache.init_app(app)
 
     CORS(app)
     JWTManager(app)
