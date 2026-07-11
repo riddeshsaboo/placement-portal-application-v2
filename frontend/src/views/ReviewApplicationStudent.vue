@@ -141,8 +141,8 @@
 
         </div>
         <div v-else class="card-body">
-            <span class="fw-bold bg-danger text-white p-2">Application Rejected</span>
-            <p class="my-2">Sorry your application was rejected by the company</p>
+            <span class="fw-bold bg-danger text-white p-2 mt-2">Application Rejected</span>
+            <p class="my-2">Sorry your application was rejected</p>
         </div>
     </div>
     <div class="card mt-3" v-if="application.status == 'shortlisted'">

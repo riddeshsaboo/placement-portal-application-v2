@@ -4,6 +4,8 @@
             <div class="container-fluid">
                 <h3 class="fw-bold">Admin Dashboard</h3>
                 <div>
+                    <button v-if="!showchart" class="btn btn-warning m-2" @click="()=>{showchart = !showchart}">Show Chart</button>
+                    <button v-else class="btn btn-warning m-2" @click="()=>{showchart = !showchart}">Hide Chart</button>
                     <button class="btn btn-success" @click="monthlyReport">Export Monthly Report</button>
                     <button class="btn btn-primary ms-2" @click="sendReminders">Send Interview Reminders</button>
                     <button class="btn btn-danger m-1" @click="logout">Logout </button>
@@ -61,7 +63,16 @@
             </div>
 
         </div>
-        <div id="companies" v-if="companies.length > 0">
+
+        <div v-if="showchart" class="container mt-5">
+            <div class="card shadow">
+                <div class="card-body">
+                    <Bar :data="dashboardData" :options="chartOptions"/>
+                </div>
+            </div>
+        </div>
+
+        <div id="companies" v-if="companies.length > 0" class="mt-3">
             <h2>Companies</h2>
             <div class="input-group m-2">
                 <input type="search" v-model="search_company" placeholder="Search companies by name / industry" class="form-control" style="max-width: 370px"  />
@@ -267,6 +278,19 @@
 
 <script>
 import axios from 'axios';
+import {Chart as ChartJS,CategoryScale,LinearScale,BarElement,Title,Tooltip,Legend} from "chart.js";
+
+import { Bar } from "vue-chartjs";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 export default {
     data(){
         const role = localStorage.getItem("role");
@@ -287,7 +311,8 @@ export default {
             job_postings: [], 
             search_job: "",
             applications: [],
-            search_application: ""
+            search_application: "",
+            showchart: false 
         }
     },
 
@@ -492,8 +517,37 @@ export default {
             ||
             appl.status.toLowerCase().includes(this.search_application.toLowerCase())
             )
-    }
-}
+    },
+    dashboardData(){
+        return{
+            labels:["Total Students", "Active Students", "Total Companies", "Active Companies", "Total Job Postings", "Active Job Postings","Applications", "Placed Students"],
+
+            datasets:[{
+                    label:"Count",
+                    data:[this.total_students, this.active_students, this.total_companies, this.active_companies, this.total_job_postings, this.active_job_postings,this.total_applications, this.applicants_placed ],
+                    backgroundColor:["blue", "skyblue", "green", "lightgreen", "orange", "gold", "lightseagreen", "cyan"],
+            }]
+        }
+    },
+
+    chartOptions(){
+        return{
+            responsive:true,
+            indexAxis:"y",
+            plugins:{
+                legend:{display:false},
+                title:{display:true,text: "Placement Portal Overview"}
+            },
+            scales:{
+                x:{beginAtZero:true}
+            }
+        }
+    },
+    
+    },
+    components: {
+        Bar
+    },
 
 }
 </script>

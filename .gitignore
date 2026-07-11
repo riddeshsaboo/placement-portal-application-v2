@@ -53,6 +53,7 @@ backend/celerybeat-schedule.db
 # =====================================
 # Generated CSV Exports
 # =====================================
+backend/exports/*
 backend/exports/student/*.csv
 backend/exports/company/*.csv
 

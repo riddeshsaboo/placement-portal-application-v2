@@ -25,7 +25,7 @@
                     <input v-model="package_amount" type="number" placeholder="Package (LPA)" class="form-control">
                 </div>
                 <div class="mb-3">
-                    <label>Skills Required</label><br>
+                    <label>Skills Required (Separated by Commas)</label><br>
                     <input v-model="skills_required" type="text" placeholder="Python, Vue, SQL">
                 </div>
                 <div class="mb-3">

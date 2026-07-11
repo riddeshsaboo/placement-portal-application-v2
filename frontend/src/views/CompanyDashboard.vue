@@ -4,6 +4,9 @@
             <div class="container-fluid">
                 <h3 class="fw-bold">Company Dashboard</h3>
                 <div>
+                    <router-link to="/company/add_job_posting" class="btn btn-info fw-bold">Add Job posting</router-link>
+                    <button v-if="!showchart" class="btn btn-warning m-1" @click="()=>{showchart = !showchart}">Show Chart</button>
+                    <button v-else class="btn btn-warning m-1" @click="()=>{showchart = !showchart}">Hide Chart</button>
                     <button class="btn btn-success" @click="exportCSV">Export Applications CSV</button>
                     <button v-if="export_ready" class="btn btn-primary ms-2" @click="downloadCSV">Download CSV</button>
                     <button class="btn btn-danger m-1" @click="logout">Logout </button>
@@ -16,7 +19,7 @@
             </div>
         </div>
         <div class="row g-3 mb-4">
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card border-success h-100">
                     <div class="card-body text-center">
                         <h5 class="text-success">Total Job Postings</h5>
@@ -28,7 +31,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card border-primary h-100">
                     <div class="card-body text-center">
                         <h5 class="text-primary">Pending Job Postings</h5>
@@ -40,19 +43,31 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card border-warning h-100">
                     <div class="card-body text-center">
                         <h5 class="text-warning">Received Applications</h5>
                         <h2 class="fw-bold">{{ received_applications }}</h2>
                         <hr>
-                        <h5 class="text-warning">Selected Candidates</h5>
-                        <h2 class="fw-bold">{{ selected_candidates }}</h2>
+                        <h5 class="text-warning">Placed Candidates</h5>
+                        <h2 class="fw-bold">{{ placed_candidates }}</h2>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md">
+                <div class="card border-danger h-100">
+                    <div class="card-body text-center">
+                        <h5 class="text-danger">Selected Candidates</h5>
+                        <h2 class="fw-bold">{{ selected_candidates }}</h2>
+                        <hr>
+                        <h5 class="text-danger">Rejected Candidates</h5>
+                        <h2 class="fw-bold">{{ rejected_candidates }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md">
                 <div class="card border-info h-100">
                     <div class="card-body text-center">
                         <h5 class="text-info">Shortlisted Candidates</h5>
@@ -63,10 +78,17 @@
                     </div>
                 </div>
             </div>
-        <div>
-            <router-link to="/company/add_job_posting" class="btn btn-info fw-bold">Add Job posting</router-link>
+        
+    </div>
+
+    <div v-if="showchart" class="container m-5">
+        <div class="card shadow">
+            <div class="card-body">
+                <Bar :data="dashboardData" :options="chartOptions"/>
+            </div>
         </div>
     </div>
+
     <div v-if="job_postings.length > 0" id="job_postings">
             <h2>Job Postings</h2>
             <div class="input-group m-2">
@@ -134,11 +156,26 @@
 
 <script>
 import axios from 'axios';
+import {Chart as ChartJS,CategoryScale,LinearScale,BarElement,Title,Tooltip,Legend} from "chart.js";
+
+import { Bar } from "vue-chartjs";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 export default {
     data(){
         const role = localStorage.getItem("role");
+        const companyId = localStorage.getItem("company_id")
         return {
             role : role ,
+            company_id : companyId,
             company_name: "",
             total_job_postings: 0,
             active_job_postings: 0,
@@ -150,7 +187,10 @@ export default {
             interview_scheduled_candidates: 0,
             job_postings: [],
             search_job: "",
-            export_ready: false 
+            export_ready: false , 
+            placed_candidates : 0,
+            rejected_candidates : 0,
+            showchart : false 
         }
     },
 
@@ -176,28 +216,49 @@ export default {
         logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("role");
+            localStorage.removeItem("company_id");
             this.$router.push("/login");
         },
         async loadDashboard(){
-            const response = await axios.get("http://127.0.0.1:5000/company/dashboard",{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+            try {
+                const response = await axios.get(`http://127.0.0.1:5000/company/dashboard/${this.company_id}`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
             
-            this.company_name = response.data.company_name
-            this.total_job_postings = response.data.total_job_postings
-            this.active_job_postings = response.data.active_job_postings
-            this.received_applications = response.data.received_applications
-            this.pending_job_postings = response.data.pending_job_postings
-            this.closed_job_postings = response.data.closed_job_postings
-            this.shortlisted_candidates = response.data.shortlisted_candidates
-            this.selected_candidates = response.data.selected_candidates
-            this.interview_scheduled_candidates = response.data.interview_scheduled_candidates
+                this.company_name = response.data.company_name
+                this.total_job_postings = response.data.total_job_postings
+                this.active_job_postings = response.data.active_job_postings
+                this.received_applications = response.data.received_applications
+                this.pending_job_postings = response.data.pending_job_postings
+                this.closed_job_postings = response.data.closed_job_postings
+                this.shortlisted_candidates = response.data.shortlisted_candidates
+                this.selected_candidates = response.data.selected_candidates
+                this.interview_scheduled_candidates = response.data.interview_scheduled_candidates
+                this.placed_candidates = response.data.placed_candidates
+                this.rejected_candidates = response.data.rejected_candidates
 
-            // console.log(response.data)
+                // console.log(response.data)
+            } catch (e) {
+                console.log(e.response);
+                console.log(e.response?.status);
+                console.log(e.response?.data);
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
         },
 
         async loadJobPostings(){
-            const response = await axios.get("http://127.0.0.1:5000/company/job_postings",{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
-            this.job_postings = response.data; 
-            console.log(this.job_postings)
+            try {
+                const response = await axios.get(`http://127.0.0.1:5000/company/job_postings/${this.company_id}`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                this.job_postings = response.data; 
+                console.log(this.job_postings)
+            } catch (e) {
+                console.log(e);
+            }
         },
         formatDate(dateString){
             return new Date(dateString).toLocaleString("en-GB")
@@ -245,8 +306,40 @@ export default {
                 ||
                 job.status.toLowerCase().includes(this.search_job.toLowerCase())
             )
-        }
+        },
+
+        dashboardData(){
+            return{
+                labels:["Total Job Postings", "Active Job Postings", "Pending Job Postings", "Closed Job Postings", "Received Applications","Placed Candidates", "Selected Candidates", "Rejected Candidates" , "Shortlisted Candidates","Interview Candidates"],
+
+                datasets:[{
+                        label:"Count",
+                        data:[this.total_job_postings, this.active_job_postings, this.pending_job_postings, this.closed_job_postings, this.received_applications, this.placed_candidates,this.selected_candidates, this.rejected_candidates,this.shortlisted_candidates, this.interview_scheduled_candidates],
+                        backgroundColor:["green", "lightgreen", "blue", "skyblue","orange", "gold","red","tomato", "royalblue", "cyan"],
+                }]
+            }
+        },
+
+        chartOptions(){
+            return{
+                responsive:true,
+                indexAxis:"y",
+                plugins:{
+                    legend:{display:false},
+                    title:{display:true,text: "Company Recruitment Overview"}
+                },
+                scales:{
+                    x:{beginAtZero:true}
+                }
+            }
+        },
+    
+    },
+    components: {
+        Bar
+    },
+
     }
 
-}
+
 </script>

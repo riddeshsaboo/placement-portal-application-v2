@@ -31,6 +31,20 @@
                     <th>Resume</th>
                     <td>
                        <button class="btn btn-primary btn-sm bg-primary my-2 text-white" @click="downloadResume(application.student.id)">View Resume</button>
+                       <button v-if="!ats" class="btn btn-info btn-sm bg-info m-2 text-white" @click="checkResume(application.id)">Check Resume Match Score</button>
+                    </td>
+                </tr>
+                <tr v-if="ats">
+                    <th>ATS</th>
+                    <td>
+                        <pre>
+Resume Score : {{ resume_score }}
+Matched Skills :{{matched_skills}}
+Missing Skills : {{ missing_skills }}
+<span v-if="recommendation == 'Excellent Match'" class="badge bg-success">Recommendation: {{ recommendation }}</span>
+<span v-else-if="recommendation == 'Good Match'" class="badge bg-warning">Recommendation: {{ recommendation }}</span>
+<span v-else class="badge bg-danger">Recommendation: {{ recommendation }}</span>
+                        </pre>
                     </td>
                 </tr>
             </table>
@@ -126,17 +140,22 @@ import axios from "axios"
 export default{
     data(){
         return{
-            application:{
-                student:{},
-                job:{}
+            "application":{
+                "student":{},
+                "job":{}
             },
-            flag: false,
-            feedback: "",
-            interview_datetime: "",
-            meeting_link: "",
-            now : "",
-            offer_letter:null,
-            joining_date: ""
+            "flag": false,
+            "feedback": "",
+            "interview_datetime": "",
+            "meeting_link": "",
+            "now" : "",
+            "offer_letter":null,
+            "joining_date": "",
+            "ats" : false,
+            "resume_score": 0,
+            "recommendation":'',
+            "matched_skills":'',
+            "missing_skills":''
         }
     },
     async mounted(){
@@ -315,6 +334,21 @@ export default{
                     return;
                 }
                 alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+        },
+
+        async checkResume(id){
+            try {
+                const response = await axios.post(`http://127.0.0.1:5000/company/resume_screener/${id}`,{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                
+                this.resume_score = response.data.resume_score
+                this.recommendation = response.data.recommendation
+                this.matched_skills = response.data.matched_skills.join(", ")
+                this.missing_skills = response.data.missing_skills.join(", ")
+                this.ats = true 
+                
+            } catch (e) {
+                console.log(e);
             }
         }
 

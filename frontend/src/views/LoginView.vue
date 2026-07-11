@@ -78,9 +78,11 @@ export default {
                     this.$router.push("/admin")
                 }
                 else if(response.data.role === "company"){
+                    localStorage.setItem("company_id",response.data.company_id)
                     this.$router.push("/company")
                 }
                 else{
+                    localStorage.setItem("student_id",response.data.student_id)
                     this.$router.push("/student")
                 }
 

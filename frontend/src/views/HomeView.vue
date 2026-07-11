@@ -24,21 +24,47 @@
                 </div>
             </div>
         </div>
-        
     </div>
+
+    <div class="card shadow m-4">
+        <div class="card-body">
+            <Bar :data="portalStatisticsChart" :options="chartOptions" />
+        </div>
+    </div>
+        
 </div>
 </template>
 
 <script>
+import axios from 'axios';
+import {Chart as ChartJS,CategoryScale,LinearScale,BarElement,Title,Tooltip,Legend} from "chart.js";
+
+import { Bar } from "vue-chartjs";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 export default {
     data(){
         return {
             isLoggedIn: false,
             loginRole: null,
+            total_students:0,
+            total_companies:0,
+            total_job_postings:0,
+            total_applications:0,
+            applicants_placed:0
         }
     },
-    mounted(){
+    async mounted(){
         this.checkLoggedIn()
+        await this.loadDashboard()
     },
 
     methods: {
@@ -61,7 +87,51 @@ export default {
                 this.isLoggedIn = false
                 this.loginRole = null
             }
+        },
+
+        async loadDashboard(){
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/public/dashboard`)
+                this.total_students = response.data.total_students
+                this.total_companies = response.data.total_companies
+                this.total_job_postings = response.data.total_job_postings
+                this.total_applications = response.data.total_applications
+                this.applicants_placed = response.data.applicants_placed
+            }catch(e){
+                console.log(e)
+            }
+
         }
+    },
+    computed: {
+        portalStatisticsChart(){
+            return{
+                labels:["Students","Companies","Job Postings","Applications","Placed Students"],
+                datasets:[{
+                    label:"Count",
+                    data:[this.total_students,this.total_companies,this.total_job_postings,this.total_applications,this.applicants_placed],
+                    backgroundColor:["blue","green","orange","red","purple"],
+                    borderRadius:8
+                }]
+            }
+        },
+
+        chartOptions(){
+            return{
+                responsive:true,
+                indexAxis:"y",
+                plugins:{
+                    legend:{display:false},
+                    title:{display:true,text: "Placement Portal Statistics"}
+                },
+                scales:{
+                    x:{beginAtZero:true}
+                }
+            }
+        },
+    },
+    components: {
+        Bar
     }
 }
 </script>

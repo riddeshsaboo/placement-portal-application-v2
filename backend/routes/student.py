@@ -1,7 +1,9 @@
 import os
+import re
 
 from flask import Blueprint, request, send_file, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt,get_jwt_identity
+import pdfplumber
 from models import * 
 from datetime import datetime
 import uuid
@@ -13,16 +15,16 @@ from extentions import mail, cache
 
 student = Blueprint("student", __name__)
 
-@student.route('/student/dashboard', methods=['GET'])
+@student.route('/student/dashboard/<int:student_id>', methods=['GET'])
 @jwt_required()
 @cache.memoize()
-def dashboard():
+def dashboard(student_id):
     jwt_data = get_jwt()
     if jwt_data["role"] != "student":
         return {"message":"Access denied"},403
 
     user_id = get_jwt_identity()
-    student = Student.query.filter_by(user_id=user_id).first()
+    student = Student.query.filter_by(user_id=user_id, id=student_id).first()
     if not student:
         return {"message":"Student not found"},404
     
@@ -47,6 +49,23 @@ def dashboard():
         }
     else :
         placement_details = None
+
+    print(
+        {
+        "student" : {
+            "id" : student.id ,
+            "full_name" : student.full_name
+        },
+        "total_applications" : total_applications,
+        "applied" : applied,
+        "shortlisted" : shortlisted,
+        "interview_scheduled" : interview_scheduled,
+        "selected" : selected,
+        "placed" : placed,
+        "rejected" : rejected,
+        "placement" : placement_details
+    }
+    )
 
     return {
         "student" : {
@@ -581,3 +600,82 @@ If you received this, Flask-Mail is configured successfully.
         "message":"Mail sent successfully"
     },200
 
+
+@student.route("/student/resume_screener/<int:placement_drive_id>", methods=["GET"])
+@jwt_required()
+def resume_screener(placement_drive_id):
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "student":
+        return {"message":"Access denied"},403
+    
+    user_id = get_jwt_identity()
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student:
+        return {"message":"Student not found"},404
+
+    drive = PlacementDrive.query.filter_by(id=placement_drive_id).first()
+    resume_path = os.path.join("uploads","resume",student.resume_path)
+    skills_required = drive.skills_required.lower().split(",")
+    text = ""
+
+    with pdfplumber.open(resume_path) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text.lower()
+
+    matched = []
+    missing = []
+
+    for skill in skills_required:
+        skill = skill.strip()
+        if re.search(r"\b"+re.escape(skill)+r"\b",text):
+            matched.append(skill)
+        else:
+            missing.append(skill)
+
+    required_skills = [x.strip().lower() for x in drive.skills_required.split(",")]
+
+    skill_map={
+    "python":["python","python3"],
+    "html":["html","html5"],
+    "css":["css","css3"],
+    "javascript":["javascript","js"],
+    "vue":["vue","vuejs"],
+    "react":["react","reactjs"],
+    "node":["node","nodejs"],
+    "git":["git","github"],
+    "software development":["software development","developer","development","developing"],
+    "django":["django"],
+    "flask":["flask"],
+    "orm":["orm"]
+    }
+
+    matched=[]
+    missing=[]
+
+    for skill in required_skills:
+        if any(keyword in text for keyword in skill_map.get(skill,[skill])):
+            matched.append(skill)
+        else:
+            missing.append(skill)
+
+    score=int(len(matched)/len(required_skills)*100)
+
+    recommendation="Poor Match"
+
+    if score>=80:
+        recommendation="Excellent Match"
+    elif score>=60:
+        recommendation="Good Match"
+    elif score>=40:
+        recommendation="Moderate Match"
+    else:
+        recommendation = "Bad Match"
+
+    return{
+        "resume_score":score,
+        "recommendation":recommendation,
+        "matched_skills":matched,
+        "missing_skills":missing
+    },200

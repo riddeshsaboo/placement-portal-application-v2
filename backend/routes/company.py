@@ -5,6 +5,9 @@ from flask_jwt_extended import jwt_required, get_jwt,get_jwt_identity
 from models import * 
 from datetime import datetime
 from werkzeug.utils import secure_filename
+import pdfplumber
+import re
+
 
 company = Blueprint("company", __name__)
 
@@ -70,16 +73,16 @@ def addjobposting():
     return {"message": "Job posting created successfully"}, 201
 
 
-@company.route("/company/dashboard", methods=["GET"])
+@company.route("/company/dashboard/<int:company_id>", methods=["GET"])
 @jwt_required()
 @cache.memoize()
-def company_dashboard():
+def company_dashboard(company_id):
     jwt_data = get_jwt()
     if jwt_data["role"] != "company":
         return {"message":"Access denied"}, 403
 
     user_id = get_jwt_identity()
-    company = Company.query.filter_by(user_id=user_id).first()
+    company = Company.query.filter_by(user_id=user_id, id=company_id).first()
 
     if not company:
         return {"message":"Company not found"}, 404
@@ -94,7 +97,8 @@ def company_dashboard():
     interview_scheduled_candidates = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id,Application.status == "interview_scheduled").count()
     received_applications = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id).count()
     shortlisted_candidates = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id,Application.status == "shortlisted").count()
-
+    placed_candidates = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id,Application.status == "placed").count()
+    rejected_candidates = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id,Application.status == "rejected").count()
     # print(total_job_postings)
     return {
         "company_name": company_name,
@@ -105,19 +109,21 @@ def company_dashboard():
         "closed_job_postings": closed_job_postings,
         "shortlisted_candidates": shortlisted_candidates,
         "selected_candidates": selected_candidates, 
-        "interview_scheduled_candidates": interview_scheduled_candidates
+        "interview_scheduled_candidates": interview_scheduled_candidates,
+        "placed_candidates" : placed_candidates,
+        "rejected_candidates" : rejected_candidates
     }, 200
 
-@company.route("/company/job_postings", methods=['GET'])
+@company.route("/company/job_postings/<int:company_id>", methods=['GET'])
 @jwt_required()
 @cache.memoize()
-def get_job_postings():
+def get_job_postings(company_id):
     jwt_data = get_jwt()
     if jwt_data["role"] != "company":
         return {"message": "Access denied"}, 403
     
     user_id = get_jwt_identity()   
-    company = Company.query.filter_by(user_id=user_id).first()
+    company = Company.query.filter_by(user_id=user_id, id=company_id).first()
     if not company:
         return {"message":"Company not found"}, 404
     
@@ -652,3 +658,98 @@ def download_export():
         return {"message":"Export not found"},404
 
     return send_file(path, as_attachment=True)
+
+
+@company.route("/company/resume_screener/<int:application_id>", methods=["POST"])
+@jwt_required()
+def resume_screener(application_id):
+    jwt_data = get_jwt()
+    if jwt_data["role"] != "company":
+        return {"message":"Access denied"},403
+    
+    user_id = get_jwt_identity()
+    company = Company.query.filter_by(user_id=user_id).first()
+    if not company:
+        return {"message":"Company not found"},404
+
+    application = Application.query.filter_by(id = application_id).first()
+    if not application:
+        return {"message":"Application not found"},404
+    
+    if application.placement_drive.company_id != company.id :
+        return {"message": "Unauthorized"}, 403
+
+    student = application.student
+    drive = application.placement_drive
+    # resume_path = f"/uploads/resume/{student.resume_path}"
+    resume_path = os.path.join("uploads","resume",student.resume_path)
+    skills_required = drive.skills_required.lower().split(",")
+    text = ""
+
+    with pdfplumber.open(resume_path) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text.lower()
+
+    matched = []
+    missing = []
+
+    for skill in skills_required:
+        skill = skill.strip()
+        if re.search(r"\b"+re.escape(skill)+r"\b",text):
+            matched.append(skill)
+        else:
+            missing.append(skill)
+
+    # score = int(len(matched)/len(skills_required)*100)
+
+    # return {
+    #     "ats_score":score,
+    #     "matched_skills":matched,
+    #     "missing_skills":missing
+    # },200
+
+    required_skills = [x.strip().lower() for x in drive.skills_required.split(",")]
+
+    skill_map={
+    "python":["python","python3"],
+    "html":["html","html5"],
+    "css":["css","css3"],
+    "javascript":["javascript","js"],
+    "vue":["vue","vuejs"],
+    "react":["react","reactjs"],
+    "node":["node","nodejs"],
+    "git":["git","github"],
+    "software development":["software development","developer","development","developing"],
+    "django":["django"],
+    "flask":["flask"],
+    "orm":["orm"]
+    }
+
+    matched=[]
+    missing=[]
+
+    for skill in required_skills:
+        if any(keyword in text for keyword in skill_map.get(skill,[skill])):
+            matched.append(skill)
+        else:
+            missing.append(skill)
+
+    score=int(len(matched)/len(required_skills)*100)
+
+    recommendation="Poor Match"
+
+    if score>=80:
+        recommendation="Excellent Match"
+    elif score>=60:
+        recommendation="Good Match"
+    elif score>=40:
+        recommendation="Moderate Match"
+
+    return{
+        "resume_score":score,
+        "recommendation":recommendation,
+        "matched_skills":matched,
+        "missing_skills":missing
+    },200

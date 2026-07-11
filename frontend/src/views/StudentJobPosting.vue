@@ -39,9 +39,41 @@
                     <td>{{ formatDate(job.deadline) }}</td>
                 </tr>
             </table>
-            <button class="btn btn-info" v-if="job.already_applied" disabled>Already applied on {{ formatDate(job.applied_at )}}</button>
-            <button class="btn btn-success" v-else @click="applyJob">Apply</button>
-            <router-link :to="`/student/application/${job.application_id}`" class="btn btn-success mx-2" v-if="job.already_applied">View Application</router-link> 
+            <hr>
+
+            <h5>ATS Resume Screening</h5>
+
+            <p class="mb-1">
+                <strong>Resume Match Score :</strong> {{ resume_match_score }}%
+            </p>
+            <p>
+               <span v-if="recommendation == 'Excellent Match'" class="badge bg-success">Recommendation: {{ recommendation }}</span>
+                <span v-else-if="recommendation == 'Good Match'" class="badge bg-warning">Recommendation: {{ recommendation }}</span>
+                <span v-else class="badge bg-danger">Recommendation: {{ recommendation }}</span>
+            </p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-success">Matched Skills</h6>
+                    <ul>
+                        <li v-for="skill in matched_skills" :key="skill">{{ skill }}</li>
+                    </ul>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-danger">Missing Skills</h6>
+                    <ul>
+                        <li v-for="skill in missing_skills" :key="skill">{{ skill }}</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="alert alert-info">It is advised to improve your resume by adding the missing skills if any before applying</div>
+
+            <button class="btn btn-info m-1" v-if="job.already_applied" disabled>Already applied on {{ formatDate(job.applied_at )}}</button>
+            <button class="btn btn-success m-1" v-else @click="applyJob">Apply</button>
+            <router-link :to="`/student/application/${job.application_id}`" class="btn btn-success my-2 m-1" v-if="job.already_applied">View Application</router-link> 
         </div>
     </div>
 </div>
@@ -52,10 +84,15 @@ export default{
     data(){
         return{
             job:{},
+            resume_match_score:0,
+            recommendation:"",
+            matched_skills:[],
+            missing_skills:[]
         }
     },
     async mounted(){
         await this.loadJob()
+        await this.loadResumeMatch()
     },
     methods:{
         async loadJob(){
@@ -94,7 +131,23 @@ export default{
 
         formatDate(date){
             return new Date(date).toLocaleString("en-GB")
-        }
+        },
+
+        async loadResumeMatch(){
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/student/resume_screener/${this.$route.params.id}`,
+                    {headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}
+                )
+
+                this.resume_match_score=response.data.resume_score
+                this.recommendation=response.data.recommendation
+                this.matched_skills=response.data.matched_skills
+                this.missing_skills=response.data.missing_skills
+
+            }catch(e){
+                console.log(e)
+            }
+        },
     }
 
 }

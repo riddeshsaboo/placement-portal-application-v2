@@ -3,6 +3,7 @@ from models import *
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 from flask_jwt_extended import create_access_token, get_jwt, jwt_required
+from extentions import cache
 
 auth = Blueprint("auth", __name__)
 
@@ -112,7 +113,11 @@ def login():
                     return {"message": f"Company account is {company.approval_status}, contact admin at admin@gmail.com"}, 403
             else : 
                 token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role, "user_id": existing_user.id})
-                return {"message": "Login success", "token": token, "role": existing_user.role}, 200
+                return {"message": "Login success", "token": token, "role": existing_user.role, "company_id": company.id}, 200
+        elif existing_user.role == "student" : 
+            student = Student.query.filter_by(user_id=existing_user.id).first()
+            token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role, "user_id": existing_user.id})
+            return {"message": "Login success", "token": token, "role": existing_user.role, "student_id": student.id}, 200
         else : 
             token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role, "user_id": existing_user.id})
             return {"message": "Login success", "token": token, "role": existing_user.role}, 200
@@ -120,6 +125,20 @@ def login():
         return {"message": "Incorrect password"}, 400
     
 
-    
+@auth.route("/public/dashboard", methods=["GET"])
+@cache.memoize(timeout=60)
+def public_dashboard():
+    total_students = Student.query.count()
+    total_companies = Company.query.filter_by(approval_status="approved").count()
+    total_job_postings = PlacementDrive.query.count()
+    total_applications = Application.query.count()
+    applicants_placed = Placement.query.count()
 
+    return {
+        "total_students": total_students,
+        "total_companies": total_companies,
+        "total_job_postings": total_job_postings,
+        "total_applications": total_applications,
+        "applicants_placed": applicants_placed
+    },200
     

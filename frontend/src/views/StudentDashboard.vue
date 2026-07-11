@@ -10,10 +10,19 @@
               <img src="../../public/user-profile.png" class="rounded-circle border border-2 border-white" alt="Profile Avatar"  style="width: 28px; height: 28px; object-fit: cover;">
               <span class="fw-semibold text-dark small">{{dashboard.student.full_name}}</span>
             </router-link>
+            <button v-if="!showchart" class="btn btn-warning m-1" @click="()=>{showchart = !showchart}">Show Chart</button>
+            <button v-else class="btn btn-warning m-1" @click="()=>{showchart = !showchart}">Hide Chart</button>
             <button class="btn btn-danger m-1" @click="logOut">Logout </button>
           </div>
       </div>
     </nav> 
+    <div class="container m-5" v-if="showchart">
+        <div class="card shadow">
+            <div class="card-body">
+                <Bar :data="dashboardData" :options="chartOptions"/>
+            </div>
+        </div>
+    </div>
 
     <div v-if="!dashboard.placed">
       <div class="card mt-3" v-if="jobs.length > 0">
@@ -130,10 +139,26 @@
 
 <script>
 import axios from "axios";
+import {Chart as ChartJS,CategoryScale,LinearScale,BarElement,Title,Tooltip,Legend} from "chart.js";
+
+import { Bar } from "vue-chartjs";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default {
   data() {
+    const role = localStorage.getItem("role");
+    const student_id = localStorage.getItem("student_id")
     return {
+      "role": role,
+      "student_id": student_id,
       "jobs": [],
       "search_job": "",
       "applications": [],
@@ -141,7 +166,8 @@ export default {
         "student": {},
         "placement": {}
       },
-      "export_ready":false
+      "export_ready":false,
+      "showchart" : false
     }
   },
   async mounted() {
@@ -153,11 +179,12 @@ export default {
     logOut() {
       localStorage.removeItem("token");
       localStorage.removeItem("role");
+      localStorage.removeItem("student_id");
       this.$router.push("/login");
     },
     async loadDashboard(){
       try{
-        const response = await axios.get("http://127.0.0.1:5000/student/dashboard",{
+        const response = await axios.get(`http://127.0.0.1:5000/student/dashboard/${this.student_id}`,{
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         })
         this.dashboard = response.data ;
@@ -290,20 +317,50 @@ export default {
   },
   computed: {
     filteredJobs() {
-    const query = this.search_job.toLowerCase().trim();
+      const query = this.search_job.toLowerCase().trim();
 
-    return this.jobs.filter(job => {
-        const skills = job.skills_required
-            ? job.skills_required.toLowerCase().split(",").map(skill => skill.trim())
-            : [];
+      return this.jobs.filter(job => {
+          const skills = job.skills_required
+              ? job.skills_required.toLowerCase().split(",").map(skill => skill.trim())
+              : [];
 
-        return (
-            job.company_name.toLowerCase().includes(query) ||
-            job.title.toLowerCase().includes(query) ||
-            skills.some(skill => skill.includes(query))
-        );
-    });
-  }
+          return (
+              job.company_name.toLowerCase().includes(query) ||
+              job.title.toLowerCase().includes(query) ||
+              skills.some(skill => skill.includes(query))
+          );
+      });
+    },
+
+    dashboardData(){
+        return{
+            labels:["Total Appplications", "Applied Applications Status", "Shortlisted Applications", "Interview Scheduled Applications", "Selected Applications","Placed Applications", "Rejected Applications"],
+
+            datasets:[{
+                    label:"Count",
+                    data:[this.dashboard.total_applications, this.dashboard.applied, this.dashboard.shortlisted, this.dashboard.interview_scheduled, this.dashboard.selected, this.dashboard.placed,this.dashboard.rejected],
+                    backgroundColor:["green", "lightgreen", "blue", "skyblue","orange", "gold","red","tomato", "royalblue", "cyan"],
+            }]
+        }
+    },
+
+    chartOptions(){
+        return{
+            responsive:true,
+            indexAxis:"y",
+            plugins:{
+                legend:{display:false},
+                title:{display:true,text: "Company Recruitment Overview"}
+            },
+            scales:{
+                x:{beginAtZero:true}
+            }
+        }
+    },
+  },
+
+  components: {
+    Bar
   }
 };
 </script>
