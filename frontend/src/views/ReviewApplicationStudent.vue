@@ -1,7 +1,13 @@
 <template>
-<div class="container mt-4">
-    <h2>Review Application</h2>
-    <div class="card mt-3">
+<div v-if="role == 'student'">
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+          <router-link to="/student" class="text-decoration-none text-dark fs-3 fw-bold">Student Dashboard</router-link>
+      </div>
+    </nav> 
+    <router-link to="/student" class="btn btn-outline-secondary m-3">← Back</router-link>
+    <h3 class="mx-3 fw-bold">Review Application</h3>
+    <div class="card m-3 border border-dark">
         <div class="card-header">
             Company Details
         </div>
@@ -27,16 +33,10 @@
                     <th>Company Description</th>
                     <td>{{ application.company.description }}</td>
                 </tr>
-                <!-- <tr>
-                    <th>Resume</th>
-                    <td>
-                        <a :href="application.student.resume" target="_blank">View Resume</a>
-                    </td>
-                </tr> -->
             </table>
         </div>
     </div>
-    <div class="card mt-3">
+    <div class="card  m-3 border border-dark">
         <div class="card-header">
             Application Details
         </div>
@@ -94,12 +94,12 @@
         </div>
     </div>
 
-    <div class="card mt-3">
+    <div class="card m-3 border border-dark">
         <div class="card-header">
             Application Progress
         </div>
 
-        <div class="card-body d-flex justify-content-between align-items-center" v-if="application.status != 'rejected'">
+        <div class="card-body d-flex justify-content-between align-items-center w-100" v-if="application.status != 'rejected'" style="overflow-x: auto;">
 
             <div class="text-center">
                 <div class="rounded-circle border border-dark d-flex justify-content-center align-items-center bg-success text-white" v-if="application_stage > -1" style="width:60px;height:60px;">1</div>
@@ -107,7 +107,7 @@
                 <small>Applied</small>
             </div>
 
-            <div class="flex-grow-1 border-top mx-2"></div>
+            <div class="flex-grow-1 border-top mx-2" style="min-width: 40px;"></div>
 
             <div class="text-center">
                 <div class="rounded-circle border border-dark d-flex justify-content-center align-items-center bg-success text-white" v-if="application_stage >= 1" style="width:60px;height:60px;">2</div>
@@ -115,15 +115,15 @@
                 <small>Shortlisted</small>
             </div>
 
-            <div class="flex-grow-1 border-top mx-2"></div>
+            <div class="flex-grow-1 border-top mx-2" style="min-width: 40px;"></div>
 
             <div class="text-center">
                 <div class="rounded-circle border border-dark d-flex justify-content-center align-items-center bg-success text-white" v-if="application_stage >= 2" style="width:60px;height:60px;">3</div>
                 <div class="rounded-circle border border-dark d-flex justify-content-center align-items-center bg-warning" v-if="application_stage < 2" style="width:60px;height:60px;">3</div>
-                <small>Interview Scheduled</small>
+                <small>Interview</small>
             </div>
 
-            <div class="flex-grow-1 border-top mx-2"></div>
+            <div class="flex-grow-1 border-top mx-2" style="min-width: 40px;"></div>
 
             <div class="text-center">
                 <div class="rounded-circle border border-dark d-flex justify-content-center align-items-center bg-success text-white" v-if="application_stage >= 3" style="width:60px;height:60px;">4</div>
@@ -131,7 +131,7 @@
                 <small>Selected</small>
             </div>
 
-            <div class="flex-grow-1 border-top mx-2"></div>
+            <div class="flex-grow-1 border-top mx-2" style="min-width: 40px;"></div>
 
             <div class="text-center">
                 <div class="rounded-circle border border-dark d-flex justify-content-center align-items-center bg-success text-white" v-if="application_stage >= 4" style="width:60px;height:60px;">5</div>
@@ -145,7 +145,7 @@
             <p class="my-2">Sorry your application was rejected</p>
         </div>
     </div>
-    <div class="card mt-3" v-if="application.status == 'shortlisted'">
+    <div class="card m-3 border border-dark" v-if="application.status == 'shortlisted'">
         <div class="card-header" >
             Points to be noted for Shortlisted candidates
         </div>
@@ -155,7 +155,7 @@
             3. Company has the right to reject the application without any prior notification. <br>
         </div>
     </div>
-    <div class="card mt-3" v-if="application.status == 'interview_scheduled'">
+    <div class="card m-3 border border-dark" v-if="application.status == 'interview_scheduled'">
         <div class="card-header" >
             Points to be noted for Interview
         </div>
@@ -168,7 +168,7 @@
             6. If the interview is offline, company would provide the Google Maps link of the venue, you have to be present there atleast 1 hour before the scheduled time. <br>
         </div>
     </div>
-    <div class="card mt-3" v-if="application.status == 'selected'">
+    <div class="card m-3 border border-dark" v-if="application.status == 'selected'">
         <div class="card-header" >
             Points to be noted for placement
         </div>
@@ -183,6 +183,11 @@
         </div>
     </div>
 </div>
+<div v-else>
+    <div class="card m-4 bg-warning" style="max-width: 370px;">
+      <span class="card-header">You are not a Student. Please <router-link to="/login">login</router-link></span>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -190,7 +195,9 @@ import axios from "axios"
 
 export default{
     data(){
+        const role = localStorage.getItem("role");
         return{
+            role: role,
             application:{
                 student:{},
                 job:{},
@@ -200,36 +207,53 @@ export default{
         }
     },
     async mounted(){
-        await this.loadApplication()
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = String(now.getMonth() + 1).padStart(2, "0")
-        const day = String(now.getDate()).padStart(2, "0")
-        const hours = String(now.getHours()).padStart(2, "0")
-        const minutes = String(now.getMinutes()).padStart(2, "0")
-        this.now = `${year}-${month}-${day}T${hours}:${minutes}`
+        if (this.role == 'student'){
+            await this.loadApplication()
+            const now = new Date()
+            const year = now.getFullYear()
+            const month = String(now.getMonth() + 1).padStart(2, "0")
+            const day = String(now.getDate()).padStart(2, "0")
+            const hours = String(now.getHours()).padStart(2, "0")
+            const minutes = String(now.getMinutes()).padStart(2, "0")
+            this.now = `${year}-${month}-${day}T${hours}:${minutes}`
+        }
+
     },
     methods:{
         async loadApplication(){
-            const response = await axios.get(`http://127.0.0.1:5000/student/application/${this.$route.params.id}`, { headers:{ Authorization:`Bearer ${localStorage.getItem("token")}` } })
-            this.application=response.data
+            try{
+                const response = await axios.get(`http://127.0.0.1:5000/student/application/${this.$route.params.id}`, { headers:{ Authorization:`Bearer ${localStorage.getItem("token")}` } })
+                this.application=response.data
 
-            if(this.application.status == 'shortlisted'){
-                this.application_stage = 1 
-            }else if(this.application.status == 'interview_scheduled'){
-                this.application_stage = 2
-            }else if(this.application.status == 'selected'){
-                this.application_stage = 3
-            }else if(this.application.status == 'placed'){
-                this.application_stage = 4
-            }else if(this.application.status == 'rejected'){
-                this.application_stage = -1
-            }else{ //applied
-                this.application_stage = 0
+                if(this.application.status == 'shortlisted'){
+                    this.application_stage = 1 
+                }else if(this.application.status == 'interview_scheduled'){
+                    this.application_stage = 2
+                }else if(this.application.status == 'selected'){
+                    this.application_stage = 3
+                }else if(this.application.status == 'placed'){
+                    this.application_stage = 4
+                }else if(this.application.status == 'rejected'){
+                    this.application_stage = -1
+                }else{ //applied
+                    this.application_stage = 0
+                }
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
         formatDate(date){
-            return new Date(date).toLocaleString("en-GB")
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
         async accept_offer(application_id){
             try{

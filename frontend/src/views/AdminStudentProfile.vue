@@ -5,8 +5,8 @@
           <router-link to="/admin" class="text-decoration-none text-dark fs-3 fw-bold">Admin Dashboard</router-link>
       </div>
     </nav> 
-
-    <div class="card m-3 border border-dark">
+    <router-link to="/admin" class="btn btn-outline-secondary m-3">← Back</router-link>
+    <div class="card mx-3 border border-dark"> 
         <div class="card-header">
             <span class="m-2 fw-bold fs-4">Student Details</span>
         </div>
@@ -39,7 +39,7 @@
                 <tr>
                     <th>Resume</th>
                     <td>
-                        <button v-if="this.student.resume_path != null" @click="downloadResume" class="btn btn-primary bg-primary btn-sm my-2">Download Resume</button>
+                        <button v-if="this.student.resume_path != null" @click="downloadResume" class="btn btn-primary bg-primary btn-sm my-2 text-white">Download Resume</button>
                         <span v-else class="fw-bold">Not uploaded</span>
                     </td>
                 </tr>
@@ -190,8 +190,11 @@ export default {
                 alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
             }
         },
-        formatDate(dateString){
-            return new Date(dateString).toLocaleString("en-GB")
+        formatDate(date){
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
         async download_offer_letter(application_id){
             try{

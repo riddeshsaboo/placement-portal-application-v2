@@ -5,26 +5,26 @@
           <router-link to="/admin" class="text-decoration-none text-dark fs-3 fw-bold">Admin Dashboard</router-link>
       </div>
     </nav> 
-
+    <router-link to="/admin" class="btn btn-outline-secondary m-3">← Back</router-link>
     <div class="card m-3 border border-dark">
         <div class="card-header">
             <span class="m-2 fw-bold fs-4">Company Details</span>
         </div>
         <div class="card-body">
             <table class="table m-2">
-                <tr>
+                <tr class="my-2">
                     <th width="220">Company Name</th>
                     <td>{{ company.company_name }}</td>
                 </tr>
-                <tr>
+                <tr class="my-2">
                     <th>Industry</th>
                     <td>{{ company.industry }}</td>
                 </tr>
-                <tr>
+                <tr class="my-2">
                     <th>Description</th>
                     <td>{{ company.description || "Not Provided" }}</td>
                 </tr>
-                <tr>
+                <tr class="my-2">
                     <th>Website</th>
                     <td>
                         <a v-if="company.website" :href="company.website" target="_blank">
@@ -33,11 +33,11 @@
                         <span v-else class="fw-bold">Not Provided</span>
                     </td>
                 </tr>
-                <tr>
+                <tr class="my-2">
                     <th>Location</th>
                     <td>{{ company.location || "Not Provided" }}</td>
                 </tr>
-                <tr>
+                <tr class="my-2">
                     <th>Status</th>
                     <td>
                         <span v-if="company.approval_status == 'pending'" class="badge bg-warning">Pending</span>
@@ -46,14 +46,14 @@
                         <span v-else-if="company.approval_status == 'rejected'" class="badge bg-danger">Rejected</span>
                     </td>
                 </tr>
-                <tr>
+                <tr class="my-2">
                     <th>Actions</th>
                     <td>
-                        <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm bg-success">Approve</button>
-                        <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'rejected')" class="btn btn-danger btn-sm bg-danger">Reject</button>
-                        <button v-if="company.approval_status == 'approved'" @click="update_company_status(company.id,'blacklisted')" class="btn btn-danger btn-sm bg-danger">Blacklist</button>
-                        <button v-if="company.approval_status == 'rejected'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm bg-success">Approve</button>
-                        <button v-if="company.approval_status == 'blacklisted'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm bg-success">Unblacklist</button>
+                        <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm bg-success m-2">Approve</button>
+                        <button v-if="company.approval_status == 'pending'" @click="update_company_status(company.id,'rejected')" class="btn btn-danger btn-sm bg-danger m-2">Reject</button>
+                        <button v-if="company.approval_status == 'approved'" @click="update_company_status(company.id,'blacklisted')" class="btn btn-danger btn-sm bg-danger m-2">Blacklist</button>
+                        <button v-if="company.approval_status == 'rejected'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm bg-success m-2">Approve</button>
+                        <button v-if="company.approval_status == 'blacklisted'" @click="update_company_status(company.id,'approved')" class="btn btn-success btn-sm bg-success m-2">Unblacklist</button>
                     </td>
                 </tr>
             </table>

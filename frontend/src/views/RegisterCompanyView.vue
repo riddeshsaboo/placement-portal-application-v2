@@ -62,6 +62,26 @@ export default {
     methods: {
         async registerCompany() {
             try {
+                const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                if(!emailRegex.test(this.email)){
+                    alert("Please enter a valid email")
+                    return
+                }
+                const passwordRegex=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/
+                if(!passwordRegex.test(this.password)){
+                    alert("Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character")
+                    return
+                }
+                if(this.website.length != 0){
+                    if(!this.isUrlSyntaxValid(this.website)){
+                        alert("Invalid Website URL format");
+                        return ;
+                    }
+                }
+                if(this.description.length>1000){
+                    alert("Company description cannot exceed 1000 characters")
+                    return
+                }
                 const response = await axios.post(
                     "http://127.0.0.1:5000/register/company",
                     {
@@ -79,7 +99,11 @@ export default {
             } catch (error) {
                 alert(error.response.data.message)
             }
-        }
+        },
+
+        isUrlSyntaxValid(string) {
+            return URL.canParse(string);
+        },
     }
 }
 </script>

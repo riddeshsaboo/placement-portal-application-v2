@@ -102,6 +102,24 @@ export default {
             try {
                 const finalBranch =
                     this.customBranch.trim() || this.branch
+
+                const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                if(!emailRegex.test(this.email)){
+                    alert("Please enter a valid email")
+                    return
+                }
+                const passwordRegex=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/
+                if(!passwordRegex.test(this.password)){
+                    alert("Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character")
+                    return
+                }
+
+                const contactRegex=/^[6-9]\d{9}$/
+                if(!contactRegex.test(this.contact)){
+                    alert("Please enter a valid 10-digit contact number")
+                    return
+                }
+
                 const response = await axios.post(
                     "http://127.0.0.1:5000/register/student",
                     {

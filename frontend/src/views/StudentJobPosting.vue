@@ -1,8 +1,15 @@
 <template>
 
-<div class="container mt-4">
-    <h2>{{ job.title }}</h2>
-    <div class="card mt-3">
+<div>
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+          <router-link to="/student" class="text-decoration-none text-dark fs-3 fw-bold">Student Dashboard</router-link>
+      </div>
+    </nav> 
+    <router-link to="/student" class="btn btn-outline-secondary m-3">← Back</router-link>
+    
+    <h2 class="mx-3">{{ job.title }}</h2>
+    <div class="card m-3 border border-dark">
         <div class="card-header">Job Details</div>
         <div class="card-body">
             <table class="table">
@@ -40,37 +47,42 @@
                 </tr>
             </table>
             <hr>
-
-            <h5>ATS Resume Screening</h5>
-
-            <p class="mb-1">
-                <strong>Resume Match Score :</strong> {{ resume_match_score }}%
-            </p>
-            <p>
-               <span v-if="recommendation == 'Excellent Match'" class="badge bg-success">Recommendation: {{ recommendation }}</span>
+            <div v-if="!job.already_applied">
+                <h5>ATS Resume Screening</h5>
+                <p class="mb-1">
+                    <strong>Resume Match Score :</strong> {{ resume_match_score }}%
+                </p>
+                <p>
+                <span v-if="recommendation == 'Excellent Match'" class="badge bg-success">Recommendation: {{ recommendation }}</span>
                 <span v-else-if="recommendation == 'Good Match'" class="badge bg-warning">Recommendation: {{ recommendation }}</span>
-                <span v-else class="badge bg-danger">Recommendation: {{ recommendation }}</span>
-            </p>
+                <span v-else class="badge bg-danger">{{ recommendation }}</span>
+                </p>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-success">Matched Skills</h6>
-                    <ul>
-                        <li v-for="skill in matched_skills" :key="skill">{{ skill }}</li>
-                    </ul>
+                <div class="row">
+                    <div class="col-md-6" v-if="matched_skills.length > 0">
+                        <h6 class="text-success">Matched Skills</h6>
+                        <ul>
+                            <li v-for="skill in matched_skills" :key="skill">{{ skill }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6" v-else>
+                        <h6 class="text-warning">No Matched Skills</h6>
+                    </div>
+
+                    <div class="col-md-6" v-if="missing_skills.length > 0">
+                        <h6 class="text-danger">Missing Skills</h6>
+                        <ul>
+                            <li v-for="skill in missing_skills" :key="skill">{{ skill }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6" v-else>
+                        <h6 class="text-warning">No Missing Skills</h6>
+                    </div>
+
                 </div>
-
-                <div class="col-md-6">
-                    <h6 class="text-danger">Missing Skills</h6>
-                    <ul>
-                        <li v-for="skill in missing_skills" :key="skill">{{ skill }}</li>
-                    </ul>
-                </div>
-
+                <div class="alert alert-info border border-dark">It is advised to improve your resume by adding the missing skills if any before applying</div>
             </div>
-
-            <div class="alert alert-info">It is advised to improve your resume by adding the missing skills if any before applying</div>
-
+            
             <button class="btn btn-info m-1" v-if="job.already_applied" disabled>Already applied on {{ formatDate(job.applied_at )}}</button>
             <button class="btn btn-success m-1" v-else @click="applyJob">Apply</button>
             <router-link :to="`/student/application/${job.application_id}`" class="btn btn-success my-2 m-1" v-if="job.already_applied">View Application</router-link> 
@@ -130,7 +142,10 @@ export default{
         },
 
         formatDate(date){
-            return new Date(date).toLocaleString("en-GB")
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
 
         async loadResumeMatch(){
@@ -145,7 +160,7 @@ export default{
                 this.missing_skills=response.data.missing_skills
 
             }catch(e){
-                console.log(e)
+                console.log(e);
             }
         },
     }

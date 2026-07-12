@@ -1,228 +1,164 @@
 # Placement Portal V2
 
-A full-stack Placement Management System built using **Vue.js**, **Flask**, **SQLite**, **JWT Authentication**, **Celery**, **Redis**, **Chart.js**, and **Bootstrap**.
+A full-stack Placement Management System developed using **Vue.js**, **Flask**, **SQLite**, **Redis**, **Celery**, **JWT Authentication**, and **Chart.js**.
 
-The system provides separate dashboards for **Students**, **Companies**, and **Administrators**, enabling complete campus placement management with analytics, background jobs, caching, and ATS-style resume screening.
+The application provides dedicated portals for **Students**, **Companies**, and **Administrators**, enabling efficient campus placement management with secure authentication, background task processing, analytics, caching, and ATS-style resume screening.
 
 ---
 
-# Features
+## Features
 
-## Authentication & Authorization
+### Authentication & Authorization
 
-- JWT-based Authentication
-- Role-based Access Control
+- JWT Authentication
+- Role-Based Access Control
 - Student Registration
 - Company Registration
-- Admin Login
-- Password Hashing
-- Company Approval System
-- Blacklist / Activate Students and Companies
+- Secure Password Hashing
+- Company Approval Workflow
+- Company Login Approval Validation
 
 ---
 
-# Student Features
+## Student Portal
 
 - Student Dashboard
 - Update Profile
-- Upload Resume
-- View Approved Placement Drives
+- Upload Resume (PDF)
+- Browse Approved Placement Drives
+- View Placement Drive Details
+- Resume Match Analysis before Applying
 - Apply for Placement Drives
-- View Application History
 - Track Application Status
-- Resume Match Analysis before applying
-- ATS-style Resume Screening
-    - Resume Match Score
-    - Recommendation
-    - Matched Skills
-    - Missing Skills
+- View Placement Details
+- Download Offer Letter
 
 ---
 
-# Company Features
+## Company Portal
 
 - Company Dashboard
 - Create Placement Drives
 - Edit Placement Drives
 - Close Placement Drives
 - View Applications
-- Review Candidate Profiles
-- Download Resume
+- View Student Profiles
+- Download Student Resumes
+- Resume Match Analysis
 - Shortlist Candidates
 - Schedule Interviews
-- Reject Candidates
+- Reject Applications
 - Select Candidates
-- Provide Feedback
-- ATS Resume Screening
-    - Resume Match Score
-    - Recommendation
-    - Matched Skills
-    - Missing Skills
-- Export Applications (CSV)
+- Provide Candidate Feedback
+- Export Applications as CSV
 
 ---
 
-# Admin Features
+## Administrator Portal
 
 - Admin Dashboard
-- Approve / Reject Companies
 - Manage Students
 - Manage Companies
-- Manage Placement Drives
-- Manage Applications
+- Approve / Reject Company Registrations
+- Blacklist / Activate Students
+- Blacklist / Activate Companies
+- Monitor Placement Drives
+- Monitor Applications
+- Trigger Monthly Reports
+- Trigger Interview Reminder Emails
+
+---
+
+## ATS Resume Screening
+
+The ATS Resume Screening module can be used by both Students and Companies.
+
+Features include:
+
+- Resume Match Score
+- Recommendation
+- Matched Skills
+- Missing Skills
+- PDF Resume Parsing using pdfplumber
+
+---
+
+## Reports & Analytics
+
+- Chart.js Dashboard Analytics
+- Public Landing Dashboard
 - Placement Statistics
-- Manual Monthly Report Generation
-- Manual Interview Reminder Trigger
+- Student & Company Analytics
+- CSV Export
+- Monthly Placement Reports
 
 ---
 
-# Analytics & Charts
+## Background Tasks
 
-Chart.js powered dashboards
-
-- Admin Analytics Dashboard
-- Company Analytics Dashboard
-- Public Landing Page Analytics
-
-Displays
-
-- Students
-- Companies
-- Placement Drives
-- Applications
-- Placements
-
----
-
-# Background Jobs
-
-Implemented using Celery + Redis
+Implemented using **Celery** and **Redis**.
 
 - Monthly Placement Reports
 - Interview Reminder Emails
-- CSV Export
-- Manual Job Triggers
-- Scheduled Background Tasks
+- CSV Export Tasks
+- Scheduled Background Jobs
 
 ---
 
-# ATS Resume Screening
+## Redis Caching
 
-Implemented using **pdfplumber**
+Implemented using Flask-Caching.
 
-Workflow
-
-- Extract text from uploaded PDF resume
-- Compare resume against required job skills
-- Calculate Resume Match Score
-- Display Recommendation
-- Display Matched Skills
-- Display Missing Skills
-
-The ATS can be used by both Students and Companies.
-
----
-
-# Reports
-
-- Monthly HTML Placement Report
-- Email Reports
-- HTML Report Export
-- CSV Export
-
----
-
-# Redis Caching
-
-Implemented using Flask-Caching + Redis
-
-Cached APIs
+Cached APIs include:
 
 - Admin Dashboard
-- Company Dashboard
 - Student Dashboard
+- Company Dashboard
 - Public Dashboard
-- Job Listings
-- Company Applications
+- Placement Drive Listings
+- Application Listings
 
-Automatic cache invalidation after updates.
+Automatic cache invalidation is performed after database updates.
 
 ---
 
-# Email Features
+## Email Services
 
-Brevo SMTP Integration
+Implemented using Flask-Mail.
 
-- Registration Emails
+- Company Registration Notifications
 - Interview Reminder Emails
 - Monthly Placement Reports
 
 ---
 
-# Frontend
+## Technology Stack
+
+### Frontend
 
 - Vue.js
 - Vue Router
 - Axios
 - Bootstrap 5
 - Chart.js
-- Responsive UI
 
----
-
-# Backend
+### Backend
 
 - Flask
 - SQLAlchemy
-- JWT
-- Celery
-- Redis
+- Flask-JWT-Extended
 - Flask-Mail
 - Flask-Caching
-
----
-
-# Database
-
-SQLite
-
-Main Tables
-
-- Users
-- Students
-- Companies
-- Placement Drives
-- Applications
-- Placements
-
----
-
-# Tech Stack
-
-## Frontend
-
-- Vue.js
-- Bootstrap 5
-- Axios
-- Chart.js
-
-## Backend
-
-- Flask
-- SQLAlchemy
-- JWT
 - Celery
 - Redis
-- Flask-Mail
-- Flask-Caching
 
-## Database
+### Database
 
 - SQLite
 
 ---
 
-# Project Structure
+## Project Structure
 
 ```
 placement-portal-v2/
@@ -230,12 +166,12 @@ placement-portal-v2/
 ├── backend/
 │   ├── routes/
 │   ├── uploads/
-│   ├── exports/
 │   ├── reports/
+│   ├── exports/
 │   ├── app.py
 │   ├── models.py
-│   ├── tasks.py
 │   ├── celery_app.py
+│   ├── tasks.py
 │   ├── config.py
 │   └── requirements.txt
 │
@@ -246,9 +182,9 @@ placement-portal-v2/
 
 ---
 
-# Installation
+## Installation
 
-## Backend
+### Backend
 
 ```bash
 cd backend
@@ -264,7 +200,7 @@ python app.py
 
 ---
 
-## Frontend
+### Frontend
 
 ```bash
 cd frontend
@@ -276,7 +212,7 @@ npm run dev
 
 ---
 
-## Redis
+### Redis
 
 ```bash
 redis-server
@@ -284,7 +220,7 @@ redis-server
 
 ---
 
-## Celery Worker
+### Celery Worker
 
 ```bash
 celery -A celery_app.celery worker --loglevel=info
@@ -292,7 +228,7 @@ celery -A celery_app.celery worker --loglevel=info
 
 ---
 
-## Celery Beat
+### Celery Beat
 
 ```bash
 celery -A celery_app.celery beat --loglevel=info
@@ -300,20 +236,20 @@ celery -A celery_app.celery beat --loglevel=info
 
 ---
 
-# Future Enhancements
+## Future Enhancements
 
 - Progressive Web App (PWA)
+- AI-Based Resume Recommendations
+- Multi-College Support
 - SMS Notifications
 - Advanced Resume Parsing
-- AI-powered Resume Suggestions
-- Multi-College Support
 
 ---
 
-# Developed By
+## Developed By
 
 **Riddesh Saboo**
 
-Bachelor of Technology (Computer Science)
+**Modern Application Development II Project May 2026 term**
 
-MIT Academy of Engineering
+**IIT Madras - BS Degree in Data Science and Applications**

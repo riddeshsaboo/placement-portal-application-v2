@@ -1,16 +1,16 @@
 <template>
-    <div>
+    <div v-if="role == 'student'">
     <nav class="navbar bg-body-tertiary">
       <div class="container-fluid">
           <router-link to="/student" class="text-decoration-none text-dark fs-3 fw-bold">Student Dashboard</router-link>
       </div>
     </nav> 
-
-    <div class="card mt-3">
+    <router-link to="/student" class="btn btn-outline-secondary m-3">← Back</router-link>
+    <div class="card m-3 border border-dark">
         <div class="card-header">Student Details</div>
         <div class="card-body">
-            <span class="fw-bold" v-if="editMode">Note: <br>1. Name cannot be edited<br>2. Educational details can be edited only if there are no applications applied by you.</span><br>
-            <table class="table m-2">
+            <span class="fw-bold m-2" v-if="editMode">Note: <br>1. Name cannot be edited<br>2. Educational details can be edited only if there are no applications applied by you.</span><br>
+            <table class="table mx-1">
                 <tr>
                     <th width="220">Full Name</th>
                     <td v-if="!editMode">{{ student.full_name }}</td>
@@ -119,13 +119,20 @@
     </div>
     
     </div>
+    <div v-else>
+    <div class="card m-4 bg-warning" style="max-width: 370px;">
+      <span class="card-header">You are not a Student. Please <router-link to="/login">login</router-link></span>
+    </div>
+  </div>
 </template>
 <script>
 import axios from 'axios';
 
 export default {
     data(){
+        const role = localStorage.getItem("role");
         return {
+            "role": role,
             "student" : {},
             "editMode" : false ,
             "resume" : '',
@@ -150,9 +157,10 @@ export default {
         editAccessOn(){
             this.editMode = true
         },
-        editAccessOff(){
+        async editAccessOff(){
             this.editMode = false
             this.resume = ''
+            await this.loadProfile()
         },
         isUrlSyntaxValid(string) {
             return URL.canParse(string);
@@ -182,6 +190,17 @@ export default {
                         if(!this.saveUpdatedResume()){
                             return ;
                         }
+                    }
+
+                    const contactRegex=/^[6-9]\d{9}$/
+                    if(!contactRegex.test(this.student.contact)){
+                        alert("Please enter a valid 10-digit contact number")
+                        return
+                    }
+
+                    if(this.student.skills.trim().length < 1){
+                        alert("Skills cannot be empty")
+                        return ;
                     }
 
                     const formData = new FormData()
@@ -251,7 +270,9 @@ export default {
         }
     },
     async mounted(){
-        await this.loadProfile()
+        if(this.role == 'student'){
+            await this.loadProfile()
+        }
     }
     
 }

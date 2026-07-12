@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="role == 'student'">
     <nav class="navbar bg-body-tertiary">
       <div class="container-fluid">
           <h3 class="fw-bold">Student Dashboard</h3>
@@ -18,19 +18,19 @@
     </nav> 
     <div class="container m-5" v-if="showchart">
         <div class="card shadow">
-            <div class="card-body">
+            <div class="card-body border border-dark">
                 <Bar :data="dashboardData" :options="chartOptions"/>
             </div>
         </div>
     </div>
 
     <div v-if="!dashboard.placed">
-      <div class="card mt-3" v-if="jobs.length > 0">
+      <div class="card m-3 border border-dark" v-if="jobs.length > 0">
         <div class="card-header">Available Job Postings</div>
-        <div class="card-body">
-          <input class="form-control mb-3" placeholder="Search using company name or job title or skills required" v-model="search_job">
+        <div class="card-body table-responsive" style="max-height:400px; overflow-y:auto;">
+          <input class="form-control mb-3 border border-dark" style="max-width: 440px;" placeholder="Search using company name or job title or skills required" v-model="search_job">
           <table class="table table-hover" v-if="filteredJobs.length > 0">
-            <thead>
+            <thead class="table table-warning">
               <tr>
                 <th>Sr</th>
                 <th>Company</th>
@@ -60,46 +60,46 @@
           </div>
         </div>
       </div>
-      <div v-else class="card mt-3">
-        <span class="fw-bold m-2">No job postings available</span>
+      <div v-else class="card m-3 border border-dark p-2">
+        <span class="fw-bold">No job postings available</span>
       </div>
     </div>
     <div v-else>
-      <div class="card mt-3">
+      <div class="card m-3 border border-dark">
         <div class="card-header">Placement Details</div>
         <div class="card-body">
-          <table class="table table-hover">
-            <tr>
-              <th>Company Name:</th>
-              <td>{{ dashboard.placement.company_name }}</td>
-            </tr>
-            <tr>
-              <th>Position (job title):</th>
-              <td>{{ dashboard.placement.position }}</td>
-            </tr>
-            <tr>
-              <th>Salar(LPA):</th>
-              <td>{{ dashboard.placement.salary }}</td>
-            </tr>
-            <tr>
-              <th>Joining Date:</th>
-              <td>{{ formatDate(dashboard.placement.joining_date) }}</td>
-            </tr>
-            <tr>
-              <th>View Application:</th>
-              <router-link :to="`/student/application/${dashboard.placement.application_id}`" class="btn btn-info bg-info btn-sm">View Application</router-link>
-            </tr>
+          <table class="table table-hover"> 
+              <tr>
+                <th>Company Name:</th>
+                <td>{{ dashboard.placement.company_name }}</td>
+              </tr>
+              <tr>
+                <th>Position (job title):</th>
+                <td>{{ dashboard.placement.position }}</td>
+              </tr>
+              <tr>
+                <th>Salary(LPA):</th>
+                <td>{{ dashboard.placement.salary }}</td>
+              </tr>
+              <tr>
+                <th>Joining Date:</th>
+                <td>{{ formatDate(dashboard.placement.joining_date) }}</td>
+              </tr>
+              <tr>
+                <th>View Application:</th>
+                <router-link :to="`/student/application/${dashboard.placement.application_id}`" class="btn btn-info bg-info btn-sm">View Application</router-link>
+              </tr>
           </table>
         </div>
       </div>
     </div>
     
 
-    <div class="card mt-4" v-if="applications.length > 0">
+    <div class="card m-3 mb-3 border border-dark" v-if="applications.length > 0">
       <div class="card-header">My Applications</div>
-      <div class="card-body">
+      <div class="card-body table-responsive" style="max-height:400px; overflow-y:auto;">
         <table class="table table-hover">
-          <thead>
+          <thead class="table table-info">
             <tr>
               <th>Sr</th>
               <th>Company</th>
@@ -131,8 +131,13 @@
         </table>
       </div>
     </div>
-    <div v-else class="card mt-3">
+    <div v-else class="card m-3 border border-dark">
       <span class="fw-bold m-2">You have not applied to any job postings yet</span>
+    </div>
+  </div>
+  <div v-else>
+    <div class="card m-4 bg-warning" style="max-width: 370px;">
+      <span class="card-header">You are not a Student. Please <router-link to="/login">login</router-link></span>
     </div>
   </div>
 </template>
@@ -171,9 +176,12 @@ export default {
     }
   },
   async mounted() {
-    await this.loadDashboard()
-    await this.loadJobs();
-    await this.loadApplications();
+    if (this.role == 'student') {
+      await this.loadDashboard()
+      await this.loadJobs();
+      await this.loadApplications();
+    }
+    
   },
   methods: {
     logOut() {
@@ -217,8 +225,11 @@ export default {
         alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
       }
     },
-    formatDate(date) {
-      return new Date(date).toLocaleString("en-GB");
+    formatDate(date){
+        if(!date) {
+            return "NA";
+        }
+        return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
     },
     async loadApplications() {
       try {

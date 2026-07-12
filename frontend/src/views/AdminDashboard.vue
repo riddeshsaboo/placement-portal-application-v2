@@ -4,9 +4,10 @@
             <div class="container-fluid">
                 <h3 class="fw-bold">Admin Dashboard</h3>
                 <div>
-                    <button v-if="!showchart" class="btn btn-warning m-2" @click="()=>{showchart = !showchart}">Show Chart</button>
-                    <button v-else class="btn btn-warning m-2" @click="()=>{showchart = !showchart}">Hide Chart</button>
-                    <button class="btn btn-success" @click="monthlyReport">Export Monthly Report</button>
+                    <button v-if="!showchart" class="btn btn-warning" @click="()=>{showchart = !showchart}">Show Chart</button>
+                    <button v-else class="btn btn-warning" @click="()=>{showchart = !showchart}">Hide Chart</button>
+                    <button class="btn btn-success ms-2" @click="monthlyReportCurrentMonth">Export Current Month Report</button>
+                    <button class="btn btn-success ms-2" @click="monthlyReportPreviousMonth">Export Previous Month Report</button>
                     <button class="btn btn-primary ms-2" @click="sendReminders">Send Interview Reminders</button>
                     <button class="btn btn-danger m-1" @click="logout">Logout </button>
                 </div>
@@ -64,18 +65,18 @@
 
         </div>
 
-        <div v-if="showchart" class="container mt-5">
-            <div class="card shadow">
+        <div v-if="showchart" class="container my-5">
+            <div class="card shadow border border-dark">
                 <div class="card-body">
                     <Bar :data="dashboardData" :options="chartOptions"/>
                 </div>
             </div>
         </div>
 
-        <div id="companies" v-if="companies.length > 0" class="mt-3">
+        <div id="companies" v-if="companies.length > 0" class="card my-3 border border-dark p-3">
             <h2>Companies</h2>
             <div class="input-group m-2">
-                <input type="search" v-model="search_company" placeholder="Search companies by name / industry" class="form-control" style="max-width: 370px"  />
+                <input type="search" v-model="search_company" placeholder="Search companies by name / industry" class="form-control border border-dark" style="max-width: 370px"  />
             </div>
             <div class="table-responsive m-2" style="max-height:400px; overflow-y:auto;">
                 <table class="table table-hover">
@@ -115,14 +116,14 @@
                 </table>
             </div>
         </div>
-        <div v-else>
+        <div v-else class="card my-3 border border-dark p-3">
             <h2>No companies registered yet</h2>
         </div>
 
-        <div id="students" v-if="students.length > 0">
+        <div id="students" v-if="students.length > 0" class="card my-3 border border-dark p-3">
             <h2>Students</h2>
             <div class="input-group m-2">
-                <input type="search" v-model="search_student" placeholder="Search students by name / id / contact" class="form-control" style="max-width: 370px"  />
+                <input type="search" v-model="search_student" placeholder="Search students by name / id / contact" class="form-control border border-dark" style="max-width: 370px"  />
             </div>
             <div class="table-responsive m-2" style="max-height:400px; overflow-y:auto;">
                 <table class="table table-hover">
@@ -158,15 +159,14 @@
             </table>
             </div>
         </div>
-        <div v-else>
+        <div v-else class="card my-3 border border-dark p-3">
             <h2>No students registered yet</h2>
         </div>
 
-        <div v-if="job_postings.length > 0" id="job_postings">
-            <br><br>
+        <div v-if="job_postings.length > 0" id="job_postings" class="card my-3 border border-dark p-3">
             <h2>Job Postings</h2>
             <div class="input-group m-2">
-                <input type="search" v-model="search_job" placeholder="Search Job postings by title / company name / status" class="form-control" style="max-width: 370px"  />
+                <input type="search" v-model="search_job" placeholder="Search Job postings by title / company name / status" class="form-control border border-dark" style="max-width: 370px"  />
             </div>
             <div class="table-responsive m-2" style="max-height:400px; overflow-y:auto;">
                 <table class="table table-hover">
@@ -216,15 +216,14 @@
             </table>
             </div>
         </div>
-        <div v-else>
-            <br><br>
+        <div v-else class="card my-3 border border-dark p-3">
             <h2>No Job postings yet</h2>
         </div>
 
-        <div v-if="applications.length > 0" id="applications">
+        <div v-if="applications.length > 0" id="applications" class="card my-3 border border-dark p-3">
             <h2>Applications</h2>
             <div class="input-group m-2">
-                <input type="search" v-model="search_application" placeholder="Search Applications by student name / company name / status" class="form-control" style="max-width: 370px"  />
+                <input type="search" v-model="search_application" placeholder="Search Applications by student name / company name / status" class="form-control border border-dark" style="max-width: 370px"  />
             </div>
             <div class="table-responsive m-2" style="max-height:400px; overflow-y:auto;">
                 <table class="table table-hover">
@@ -266,7 +265,7 @@
             </table>
             </div>
         </div>
-        <div v-else>
+        <div v-else class="card my-3 border border-dark p-3">
             <h2>No Applications yet</h2>
         </div>
 
@@ -397,8 +396,11 @@ export default {
             await this.loadData()
         },
 
-        formatDate(dateString){
-            return new Date(dateString).toLocaleString("en-GB")
+        formatDate(date){
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
 
         async loadApplications(){
@@ -437,9 +439,27 @@ export default {
             }
         },
 
-        async monthlyReport(){
+        async monthlyReportCurrentMonth(){
             try{
-                const response = await axios.post("http://127.0.0.1:5000/admin/monthly_report",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                const response = await axios.post("http://127.0.0.1:5000/admin/monthly_report/1",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+                alert(response.data.message || "Success");
+                
+            }catch(e){
+                if(e.response?.status == 401){
+                    alert("Session expired. Please login again.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("role");
+                    this.$router.push("/");
+                    return;
+                }
+                // console.log(e.response);
+                alert(e.response?.data?.message || e.response?.data?.msg || "Something went wrong");
+            }
+        },
+
+        async monthlyReportPreviousMonth(){
+            try{
+                const response = await axios.post("http://127.0.0.1:5000/admin/monthly_report/0",{},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
                 alert(response.data.message || "Success");
                 
             }catch(e){

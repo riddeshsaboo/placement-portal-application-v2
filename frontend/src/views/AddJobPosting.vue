@@ -5,6 +5,7 @@
             <h3 class="fw-bold">Placement Portal V2</h3>
         </router-link>
     </nav>
+    <router-link to="/company" class="btn btn-outline-secondary m-3">← Back</router-link>
     <div class="container d-flex justify-content-center align-items-center mt-3" style="min-height:85vh">
         <div style="width:420px" class="p-3 bg-body-tertiary rounded border border-info">
             <div class="card-header text-center">

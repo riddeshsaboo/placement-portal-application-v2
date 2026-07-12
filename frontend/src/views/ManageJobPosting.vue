@@ -1,7 +1,8 @@
 <template>
 <div class="container mt-4">
+    <router-link to="/company" class="btn btn-outline-secondary mb-3">← Back</router-link>
     <h2>Manage Job Posting</h2>
-    <div class="card mt-3">
+    <div class="card mt-3 border border-dark">
         <div class="card-header">Job Details</div>
         <div class="card-body">
             <table class="table">
@@ -69,10 +70,10 @@
                 <tr>
                     <th>Status</th>
                     <td>
-                        <span class="badge bg-success" v-if="job.status == 'approved'">Approved</span>
+                        <span class="badge bg-success text-white" v-if="job.status == 'approved'">Approved</span>
                         <span class="badge bg-warning text-dark" v-else-if="job.status == 'pending'">Pending</span>
-                        <span class="badge bg-secondary" v-else-if="job.status == 'closed'">Closed</span>
-                        <span class="badge bg-danger" v-else>Rejected</span>
+                        <span class="badge bg-secondary text-white" v-else-if="job.status == 'closed'">Closed</span>
+                        <span class="badge bg-danger text-white" v-else>Rejected</span>
                     </td>
                 </tr>
             </table>
@@ -88,7 +89,7 @@
             </div>
         </div>
     </div>
-    <div id="applications" v-if="this.applications.length > 0">
+    <div id="applications" v-if="this.applications.length > 0" class="card mt-3 mb-3 border border-dark p-3">
     <h2>Applications</h2>
         <input class="form-control mb-3" placeholder="Search applicants by name/ status" v-model="search_application">
         <div class="table-responsive m-2" style="max-height:500px; overflow-y:auto;">
@@ -168,8 +169,11 @@ export default {
                 this.$router.push("/company")
             }
         },
-        formatDate(date) { 
-            return new Date(date).toLocaleString("en-GB") 
+        formatDate(date){
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
         async loadApplications() {
             try{

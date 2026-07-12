@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <h3 class="fw-bold">Company Dashboard</h3>
                 <div>
-                    <router-link to="/company/add_job_posting" class="btn btn-info fw-bold">Add Job posting</router-link>
+                    <router-link to="/company/add_job_posting" class="btn btn-info">Add Job posting</router-link>
                     <button v-if="!showchart" class="btn btn-warning m-1" @click="()=>{showchart = !showchart}">Show Chart</button>
                     <button v-else class="btn btn-warning m-1" @click="()=>{showchart = !showchart}">Hide Chart</button>
                     <button class="btn btn-success" @click="exportCSV">Export Applications CSV</button>
@@ -13,7 +13,7 @@
                 </div>
             </div>
         </nav> 
-        <div class="card mb-3 mt-3 ">
+        <div class="card mb-3 mt-3 border border-dark">
             <div class="card-header">
                 <span class="fw-bold">Welcome! {{company_name}}</span>
             </div>
@@ -82,17 +82,17 @@
     </div>
 
     <div v-if="showchart" class="container m-5">
-        <div class="card shadow">
+        <div class="card shadow border border-dark">
             <div class="card-body">
                 <Bar :data="dashboardData" :options="chartOptions"/>
             </div>
         </div>
     </div>
 
-    <div v-if="job_postings.length > 0" id="job_postings">
+    <div v-if="job_postings.length > 0" id="job_postings" class="card mb-3 mt-3 border border-dark p-2">
             <h2>Job Postings</h2>
             <div class="input-group m-2">
-                <input type="search" v-model="search_job" placeholder="Search Job postings by title / company name / status" class="form-control" style="max-width: 370px"  />
+                <input type="search" v-model="search_job" placeholder="Search Job postings by title / company name / status" class="form-control border border-dark" style="max-width: 370px"  />
             </div>
             <div class="table-responsive m-2" style="max-height:400px; overflow-y:auto;">
                 <table class="table table-hover">
@@ -260,10 +260,12 @@ export default {
                 console.log(e);
             }
         },
-        formatDate(dateString){
-            return new Date(dateString).toLocaleString("en-GB")
+        formatDate(date){
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
-
         async updatePostingStatus(posting_id,status){
             await axios.put(`http://127.0.0.1:5000/company/job_posting/${posting_id}/status`,{status: status},{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
             await this.loadJobPostings()

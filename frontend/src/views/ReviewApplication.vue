@@ -1,7 +1,8 @@
 <template>
 <div class="container mt-4">
+    <router-link to="/company" class="btn btn-outline-secondary mb-3">← Back</router-link>
     <h2>Review Application</h2>
-    <div class="card mt-3">
+    <div class="card mt-3 border border-dark">
         <div class="card-header">
             Student Details
         </div>
@@ -28,6 +29,20 @@
                     <td>{{ application.student.cgpa }}</td>
                 </tr>
                 <tr>
+                    <th>GitHub URL</th>
+                    <td>
+                        <a v-if="application.student.github_url" :href="`${application.student.github_url}`" target="_blank" class="btn btn-link">{{ application.student.github_url }}</a> 
+                        <span v-else>Not Provided</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>LinkedIn URL</th>
+                    <td>
+                        <a v-if="application.student.linkedin_url" :href="`${application.student.linkedin_url}`" target="_blank" class="btn btn-link">{{ application.student.linkedin_url }}</a> 
+                        <span v-else>Not Provided</span>
+                    </td>
+                </tr>
+                <tr>
                     <th>Resume</th>
                     <td>
                        <button class="btn btn-primary btn-sm bg-primary my-2 text-white" @click="downloadResume(application.student.id)">View Resume</button>
@@ -37,20 +52,19 @@
                 <tr v-if="ats">
                     <th>ATS</th>
                     <td>
-                        <pre>
-Resume Score : {{ resume_score }}
-Matched Skills :{{matched_skills}}
-Missing Skills : {{ missing_skills }}
-<span v-if="recommendation == 'Excellent Match'" class="badge bg-success">Recommendation: {{ recommendation }}</span>
-<span v-else-if="recommendation == 'Good Match'" class="badge bg-warning">Recommendation: {{ recommendation }}</span>
-<span v-else class="badge bg-danger">Recommendation: {{ recommendation }}</span>
-                        </pre>
+                    <span class="m-1"><span class="fw-bold">Resume Score</span> : {{ resume_score }}</span><br>
+                    <span class="m-1"><span class="fw-bold">Matched Skills</span> :{{matched_skills || " None"}}</span><br>
+                    <span class="m-1"><span class="fw-bold">Missing Skills</span> : {{ missing_skills || "None" }}</span><br>
+                    <span v-if="recommendation == 'Excellent Match'" class="badge bg-success m-1">Recommendation: {{ recommendation }}</span>
+                    <span v-else-if="recommendation == 'Good Match'" class="badge bg-warning m-1">Recommendation: {{ recommendation }}</span>
+                    <span v-else class="badge bg-danger m-1">{{ recommendation }}</span>
+                        
                     </td>
                 </tr>
             </table>
         </div>
     </div>
-    <div class="card mt-3">
+    <div class="card mt-3 border border-dark">
         <div class="card-header">
             Application
         </div>
@@ -66,9 +80,9 @@ Missing Skills : {{ missing_skills }}
                         <span v-if="application.status == 'applied'" class="badge bg-warning">Applied</span>
                         <span v-if="application.status == 'shortlisted'" class="badge bg-primary text-white">Shortlisted</span>
                         <span v-if="application.status == 'interview_scheduled'" class="badge bg-primary-subtle">Interview Scheduled</span>
-                        <span v-if="application.status == 'selected'" class="badge bg-success">Selected</span>
-                        <span v-if="application.status == 'placed'" class="badge bg-success">Placed</span>
-                        <span v-if="application.status == 'rejected'" class="badge bg-danger">Rejected</span>
+                        <span v-if="application.status == 'selected'" class="badge bg-success text-white">Selected</span>
+                        <span v-if="application.status == 'placed'" class="badge bg-success text-white">Placed</span>
+                        <span v-if="application.status == 'rejected'" class="badge bg-danger text-white">Rejected</span>
                     </td>
                 </tr>
                 <tr>
@@ -78,7 +92,7 @@ Missing Skills : {{ missing_skills }}
                 <tr v-if="application.status == 'selected' || application.status == 'placed'">
                     <th>Offer Letter</th>
                     <td>
-                        <button class="btn btn-info bg-info btn-sm my-2" @click="downloadOfferLetter(application.id)">View Offer Letter</button>
+                        <button class="btn btn-info bg-info btn-sm my-2 text-white" @click="downloadOfferLetter(application.id)">View Offer Letter</button>
                     </td>
                 </tr>
                 <tr v-if="application.status == 'selected' || application.status == 'placed'">
@@ -100,14 +114,14 @@ Missing Skills : {{ missing_skills }}
             </table>
         </div>
     </div>
-    <div class="card mt-3">
+    <div class="card mt-3 mb-3 border border-dark">
         <div class="card-header">
             Actions
         </div>
         <div class="card-body">
             <div v-if="flag" class="mb-3">
                 <label class="form-label">Interview Date and Time</label>
-                <input type="datetime-local" class="form control mb-3" v-model="interview_datetime" :min="now">
+                <input type="datetime-local" class="form control mb-3 mx-2" v-model="interview_datetime" :min="now">
                 <br>
                 <label class="form-label">Meeting link</label>
                 <input type="url" class="form-control" v-model="meeting_link">
@@ -182,7 +196,10 @@ export default{
             }
         },
         formatDate(date){
-            return new Date(date).toLocaleString("en-GB")
+            if(!date) {
+                return "NA";
+            }
+            return new Date(date.replace(" GMT","")).toLocaleString("en-GB")
         },
 
         async shortlist(){
