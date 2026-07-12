@@ -103,57 +103,61 @@ def send_interview_reminders():
     return f"{count} mail(s) sent"
 
 @celery.task
-def generate_monthly_report():
-    
+def generate_monthly_report(current_month = False):
     today = datetime.now()
     first_day_current_month = today.replace(day=1)
-    last_day_previous_month = first_day_current_month - timedelta(days=1)
-    first_day_previous_month = last_day_previous_month.replace(day=1)
-    previous_month = last_day_previous_month.strftime('%B_%Y')
+    if not current_month :
+        last_day = first_day_current_month - timedelta(days=1)
+        first_day = last_day.replace(day=1)
+        month = last_day.strftime('%B_%Y')
+    else :
+        last_day = today
+        first_day = first_day_current_month
+        month = last_day.strftime('%B_%Y')
 
-    placement_drives = PlacementDrive.query.filter(PlacementDrive.created_at >= first_day_previous_month,PlacementDrive.created_at <= last_day_previous_month).count()
+    placement_drives = PlacementDrive.query.filter(PlacementDrive.created_at >= first_day,PlacementDrive.created_at <= last_day).count()
 
-    applications = Application.query.filter(Application.applied_at >= first_day_previous_month,Application.applied_at <= last_day_previous_month).count()
+    applications = Application.query.filter(Application.applied_at >= first_day,Application.applied_at <= last_day).count()
 
     selected = Application.query.filter(
         Application.status.in_(["selected", "placed"]),
-        Application.applied_at >= first_day_previous_month,
-        Application.applied_at <= last_day_previous_month
+        Application.applied_at >= first_day,
+        Application.applied_at <= last_day
     ).count()
 
     students_placed = Placement.query.filter(
-        Placement.placed_at >= first_day_previous_month,
-        Placement.placed_at <= last_day_previous_month
+        Placement.placed_at >= first_day,
+        Placement.placed_at <= last_day
     ).count()
 
     interviews = Application.query.filter(
         Application.status.in_(["interview_scheduled", "selected", "placed"]),
-        Application.applied_at >= first_day_previous_month,
-        Application.applied_at <= last_day_previous_month
+        Application.applied_at >= first_day,
+        Application.applied_at <= last_day
     ).count()
 
     companies_participated = db.session.query(func.count(func.distinct(PlacementDrive.company_id))).filter(
-        PlacementDrive.created_at >= first_day_previous_month,
-        PlacementDrive.created_at <= last_day_previous_month
+        PlacementDrive.created_at >= first_day,
+        PlacementDrive.created_at <= last_day
     ).scalar() or 0
 
     average_salary = db.session.query(func.avg(Placement.salary)).filter(
-        Placement.placed_at >= first_day_previous_month,
-        Placement.placed_at <= last_day_previous_month
+        Placement.placed_at >= first_day,
+        Placement.placed_at <= last_day
     ).scalar()
 
     average_salary = round(average_salary or 0, 2)
 
     highest_salary = db.session.query(func.max(Placement.salary)).filter(
-        Placement.placed_at >= first_day_previous_month,
-        Placement.placed_at <= last_day_previous_month
+        Placement.placed_at >= first_day,
+        Placement.placed_at <= last_day
     ).scalar()
 
     highest_salary = highest_salary or 0
 
     lowest_salary = db.session.query(func.min(Placement.salary)).filter(
-        Placement.placed_at >= first_day_previous_month,
-        Placement.placed_at <= last_day_previous_month
+        Placement.placed_at >= first_day,
+        Placement.placed_at <= last_day
     ).scalar()
 
     lowest_salary = lowest_salary or 0
@@ -164,7 +168,7 @@ def generate_monthly_report():
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
             </head>
             <body>
-            <h2 class="fw-bold bg-warning m-2 p-2 border border-dark" >Placement Portal Monthly Report for {previous_month}</h2>
+            <h2 class="fw-bold bg-warning m-2 p-2 border border-dark" >Placement Portal Monthly Report for {month}</h2>
             <table class="table table-hover bg-tertiary" >
             <tr>
             <th>Metric</th>
@@ -214,7 +218,7 @@ def generate_monthly_report():
     """
 
     os.makedirs("exports/reports", exist_ok=True)
-    filename = f"Monthly_Report_{previous_month}.html"
+    filename = f"Monthly_Report_{month}.html"
     filepath = os.path.join("exports", "reports", filename)
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html)
@@ -227,5 +231,5 @@ def generate_monthly_report():
 
     mail.send(msg)
 
-    return f"Report for {previous_month} succesfully mailed to the admin"
+    return f"Report for {month} succesfully mailed to the admin"
 

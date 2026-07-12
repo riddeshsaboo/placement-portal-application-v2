@@ -18,6 +18,8 @@ def register_student():
     password = (data.get("password") or "").strip()
     full_name = data.get("full_name")
     cgpa = data.get("cgpa")
+    if not cgpa :
+        return {"message": "CGPA cannot be empty"}, 400
     branch = data.get("branch")
     contact = data.get("contact")
     education = data.get("education")
@@ -116,6 +118,8 @@ def login():
                 return {"message": "Login success", "token": token, "role": existing_user.role, "company_id": company.id}, 200
         elif existing_user.role == "student" : 
             student = Student.query.filter_by(user_id=existing_user.id).first()
+            if not student.user.is_active : 
+                return {"message":"You have been blacklisted, Please contact the admin at admin@gmail.com"}, 403
             token = create_access_token(identity=str(existing_user.id),additional_claims={"role": existing_user.role, "user_id": existing_user.id})
             return {"message": "Login success", "token": token, "role": existing_user.role, "student_id": student.id}, 200
         else : 

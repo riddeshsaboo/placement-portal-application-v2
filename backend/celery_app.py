@@ -34,3 +34,5 @@ class ContextTask(celery.Task):
 
 
 celery.Task = ContextTask
+
+import tasks

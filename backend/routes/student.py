@@ -615,7 +615,16 @@ def resume_screener(placement_drive_id):
 
     drive = PlacementDrive.query.filter_by(id=placement_drive_id).first()
     resume_path = os.path.join("uploads","resume",student.resume_path)
-    skills_required = drive.skills_required.lower().split(",")
+    if drive.skills_required is None: 
+        return {
+        "resume_score":0,
+        "recommendation": "Required Skills not disclosed by the company",
+        "matched_skills":[],
+        "missing_skills":[]
+        },200
+    
+
+    skills_required = drive.skills_required.lower().split(",") 
     text = ""
 
     with pdfplumber.open(resume_path) as pdf:
@@ -670,8 +679,6 @@ def resume_screener(placement_drive_id):
         recommendation="Good Match"
     elif score>=40:
         recommendation="Moderate Match"
-    else:
-        recommendation = "Bad Match"
 
     return{
         "resume_score":score,

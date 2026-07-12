@@ -170,6 +170,18 @@ def update_job_posting_status(posting_id):
     
     if posting.company_id != company.id : 
         return {"message" : "Unauthorised"}, 403
+    
+    if posting.status == "closed":
+        return {"message":"Job posting already closed"},400
+    
+    if status == 'closed':
+        applications = Application.query.filter_by(placement_drive_id = posting.id).all()
+
+        for application in applications :
+            if application.status not in ["placed","rejected"]:
+                application.status = 'rejected' 
+                application.feedback = 'Application auto rejected as Job Posting was marked closed by company'
+
 
     posting.status = status
     db.session.commit()
@@ -359,7 +371,9 @@ def get_application(application_id):
             "branch":student.branch,
             "cgpa":student.cgpa,
             "contact":student.contact,
-            "resume":student.resume_path
+            "resume":student.resume_path,
+            "github_url": student.github_url,
+            "linkedin_url": student.linkedin_url
         },
         "job":{
             "id":posting.id,
@@ -683,6 +697,14 @@ def resume_screener(application_id):
     drive = application.placement_drive
     # resume_path = f"/uploads/resume/{student.resume_path}"
     resume_path = os.path.join("uploads","resume",student.resume_path)
+    if drive.skills_required is None: 
+        return {
+        "resume_score":0,
+        "recommendation": "Required Skills not disclosed by the company",
+        "matched_skills":[],
+        "missing_skills":[]
+        },200
+    
     skills_required = drive.skills_required.lower().split(",")
     text = ""
 

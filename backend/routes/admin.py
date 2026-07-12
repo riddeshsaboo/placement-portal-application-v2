@@ -158,6 +158,8 @@ def get_job_postings():
     result = []
 
     for posting in postings:
+        print(posting.created_at)
+        print(type(posting.created_at))
         result.append({
             "id": posting.id,
             "title": posting.title,
@@ -186,6 +188,21 @@ def update_job_posting_status(posting_id):
     posting = PlacementDrive.query.filter_by(id=posting_id).first()
     if not posting:
         return {"message": "Job posting not found"}, 404
+    
+    posting = PlacementDrive.query.filter_by(id=posting_id).first()
+    if not posting:
+        return {"message": "Job posting not found"}, 404
+    
+    if posting.status == "closed":
+        return {"message":"Job posting already closed"},400
+    
+    if status == 'closed':
+        applications = Application.query.filter_by(placement_drive_id = posting.id).all()
+
+        for application in applications :
+            if application.status not in ["placed","rejected"]:
+                application.status = 'rejected' 
+                application.feedback = 'Application auto rejected as Job Posting was marked closed by the Admin'
 
     posting.status = status
     db.session.commit()
@@ -375,17 +392,23 @@ def reminders():
         "message": "Reminderd queued"
     }, 200
 
-@admin.route("/admin/monthly_report", methods= ["POST"])
+@admin.route("/admin/monthly_report/<int:current_month>", methods= ["POST"])
 @jwt_required()
-def generate_monthly_report():
+def generate_monthly_report(current_month):
     jwt_data = get_jwt()
     if jwt_data["role"] != "admin":
         return {"message": "Access denied"}, 403
     
+    if current_month not in [0,1]:
+        return {"message": "Invalid Request"}, 400
+    
     from tasks import generate_monthly_report
 
-    generate_monthly_report.delay()
-
+    if current_month == 1 :
+        generate_monthly_report.delay(True)
+    else :
+        generate_monthly_report.delay()
+    
     return {
         "message": "Monthly Report Generation queued"
     }, 200
