@@ -1,0 +1,884 @@
+openapi: 3.0.3
+
+info:
+  title: Placement Portal Application V2 API
+  version: 1.0.0
+  description: >
+    REST API documentation for Placement Portal Application V2.
+    The application provides role-based access for Administrators,
+    Companies and Students using JWT Authentication.
+
+servers:
+  - url: http://127.0.0.1:5000
+
+tags:
+  - name: Authentication
+  - name: Student
+  - name: Company
+  - name: Admin
+  - name: Public
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+
+    Unauthorized:
+      description: JWT Token Missing or Invalid
+
+    Forbidden:
+      description: Access Denied
+
+    NotFound:
+      description: Resource Not Found
+
+paths:
+
+  /register/student:
+
+    post:
+      tags:
+        - Authentication
+      summary: Register Student
+      description: Creates a new student account.
+      requestBody:
+        required: true
+      responses:
+        "201":
+          description: Student Registered Successfully
+        "400":
+          description: Invalid Input
+
+  /register/company:
+
+    post:
+      tags:
+        - Authentication
+      summary: Register Company
+      description: Registers a new company account.
+      requestBody:
+        required: true
+      responses:
+        "201":
+          description: Company Registered Successfully
+        "400":
+          description: Invalid Input
+
+  /login:
+
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Authenticates the user and returns a JWT access token.
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Login Successful
+        "400":
+          description: Invalid Credentials
+        "403":
+          description: Company Not Approved
+
+  /public/dashboard:
+
+    get:
+      tags:
+        - Public
+      summary: Public Dashboard
+      description: Returns public placement statistics displayed on the landing page.
+      responses:
+        "200":
+          description: Dashboard Statistics Returned
+
+  /student/dashboard/{student_id}:
+
+  get:
+    tags:
+      - Student
+    summary: Student Dashboard
+    description: Returns dashboard statistics for the logged in student.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: Dashboard Loaded
+      "401":
+        $ref: "#/components/responses/Unauthorized"
+
+  /student/profile:
+
+    get:
+      tags:
+        - Student
+      summary: View Student Profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile Returned
+
+  /student/profile/update:
+
+    put:
+      tags:
+        - Student
+      summary: Update Student Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Profile Updated
+
+  /student/job_postings:
+
+    get:
+      tags:
+        - Student
+      summary: View Approved Placement Drives
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Placement Drives Returned
+
+  /student/job_posting/{posting_id}:
+
+    get:
+      tags:
+        - Student
+      summary: View Placement Drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Placement Drive Returned
+
+  /student/job_posting/{posting_id}/apply:
+
+    post:
+      tags:
+        - Student
+      summary: Apply for Placement Drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Application Submitted
+
+  /student/applications:
+
+    get:
+      tags:
+        - Student
+      summary: View All Applications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Applications Returned
+
+  /student/application/{application_id}:
+
+    get:
+      tags:
+        - Student
+      summary: View Application Details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Application Returned
+
+  /student/application/{application_id}/accept:
+
+    put:
+      tags:
+        - Student
+      summary: Accept Placement Offer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offer Accepted
+
+  /student/application/{application_id}/reject:
+
+    put:
+      tags:
+        - Student
+      summary: Reject Placement Offer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offer Rejected
+
+  /student/resume:
+
+    get:
+      tags:
+        - Student
+      summary: Download Resume
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Resume Downloaded
+
+  /student/application/{application_id}/offer_letter:
+
+    get:
+      tags:
+        - Student
+      summary: Download Offer Letter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offer Letter Downloaded
+
+  /student/export:
+
+    post:
+      tags:
+        - Student
+      summary: Generate CSV Export
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export Started
+
+  /student/export/download:
+
+    get:
+      tags:
+        - Student
+      summary: Download Exported CSV
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: CSV Downloaded
+
+  /student/resume_screener/{placement_drive_id}:
+
+    get:
+      tags:
+        - Student
+      summary: Resume Match Analysis
+      description: Performs ATS-style Resume Match Analysis for the selected placement drive.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: placement_drive_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resume Match Score Generated
+
+  /company/addjobposting:
+
+  post:
+    tags:
+      - Company
+    summary: Create Placement Drive
+    description: Creates a new placement drive.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+    responses:
+      "201":
+        description: Placement Drive Created
+
+  /company/dashboard/{company_id}:
+
+    get:
+      tags:
+        - Company
+      summary: Company Dashboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dashboard Loaded
+
+  /company/job_postings/{company_id}:
+
+    get:
+      tags:
+        - Company
+      summary: View Placement Drives
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Placement Drives Returned
+
+  /company/job_posting/{posting_id}:
+
+    get:
+      tags:
+        - Company
+      summary: View Placement Drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Placement Drive Returned
+
+    put:
+      tags:
+        - Company
+      summary: Update Placement Drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Placement Drive Updated
+
+  /company/job_posting/{posting_id}/status:
+
+    put:
+      tags:
+        - Company
+      summary: Close Placement Drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Status Updated
+
+  /company/job_posting/{posting_id}/applications:
+
+    get:
+      tags:
+        - Company
+      summary: View Applications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Applications Returned
+
+  /company/application/{application_id}:
+
+    get:
+      tags:
+        - Company
+      summary: View Application Details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Application Returned
+
+  /company/application/{application_id}/shortlist:
+
+    put:
+      tags:
+        - Company
+      summary: Shortlist Candidate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidate Shortlisted
+
+  /company/application/{application_id}/reject:
+
+    put:
+      tags:
+        - Company
+      summary: Reject Candidate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidate Rejected
+
+  /company/application/{application_id}/interview_scheduled:
+
+    put:
+      tags:
+        - Company
+      summary: Schedule Interview
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Interview Scheduled
+
+  /company/application/{application_id}/select:
+
+    put:
+      tags:
+        - Company
+      summary: Select Candidate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidate Selected
+
+  /company/student/{student_id}/resume:
+
+    get:
+      tags:
+        - Company
+      summary: Download Student Resume
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resume Downloaded
+
+  /company/application/{application_id}/offer_letter:
+
+    get:
+      tags:
+        - Company
+      summary: Download Offer Letter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offer Letter Downloaded
+
+  /company/export:
+
+    post:
+      tags:
+        - Company
+      summary: Generate CSV Export
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export Started
+
+  /company/export/download:
+
+    get:
+      tags:
+        - Company
+      summary: Download Exported CSV
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: CSV Downloaded
+
+  /company/resume_screener/{application_id}:
+
+    post:
+      tags:
+        - Company
+      summary: Resume Match Analysis
+      description: Performs ATS-style Resume Match Analysis for a student's application.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resume Match Score Generated
+
+  /admin/dashboard:
+
+    get:
+      tags:
+        - Admin
+      summary: Administrator Dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard Loaded
+
+  /admin/companies:
+
+    get:
+      tags:
+        - Admin
+      summary: View Companies
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Company List Returned
+
+  /admin/company/{company_id}:
+
+    get:
+      tags:
+        - Admin
+      summary: View Company Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Company Details Returned
+
+  /admin/company/{company_id}/status:
+
+    put:
+      tags:
+        - Admin
+      summary: Approve, Reject or Blacklist Company
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Company Status Updated
+
+  /admin/company/job_postings/{company_id}:
+
+    get:
+      tags:
+        - Admin
+      summary: View Company's Placement Drives
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Placement Drives Returned
+
+  /admin/students:
+
+    get:
+      tags:
+        - Admin
+      summary: View Students
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Student List Returned
+
+  /admin/student/{student_id}:
+
+    get:
+      tags:
+        - Admin
+      summary: View Student Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student Details Returned
+
+  /admin/student/{student_id}/status:
+
+    put:
+      tags:
+        - Admin
+      summary: Activate or Blacklist Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Student Status Updated
+
+  /admin/student/resume/{student_id}:
+
+    get:
+      tags:
+        - Admin
+      summary: Download Student Resume
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resume Downloaded
+
+  /admin/student/applications/{student_id}:
+
+    get:
+      tags:
+        - Admin
+      summary: View Student Applications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Applications Returned
+
+  /admin/job_postings:
+
+    get:
+      tags:
+        - Admin
+      summary: View All Placement Drives
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Placement Drives Returned
+
+  /admin/job_posting/{posting_id}/status:
+
+    put:
+      tags:
+        - Admin
+      summary: Approve or Reject Placement Drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: posting_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Placement Drive Status Updated
+
+  /admin/applications:
+
+    get:
+      tags:
+        - Admin
+      summary: View All Applications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Applications Returned
+
+  /admin/application/{application_id}/offer_letter:
+
+    get:
+      tags:
+        - Admin
+      summary: Download Offer Letter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Offer Letter Downloaded
+
+  /admin/reminders:
+
+    post:
+      tags:
+        - Admin
+      summary: Trigger Interview Reminder Emails
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reminder Emails Triggered
+
+  /admin/monthly_report/{current_month}:
+
+    post:
+      tags:
+        - Admin
+      summary: Generate Monthly Placement Report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: current_month
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly Report Generated

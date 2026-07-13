@@ -18,7 +18,7 @@ def export_student_applications(student_id, rows):
     
     student = Student.query.get(student_id)
 
-    msg = Message(subject="Placement Application Export Ready",recipients=['riddeshsaboo10@gmail.com'])  #student.user.email
+    msg = Message(subject="Placement Application Export Ready",recipients=[student.user.email])  #student.user.email
 
     msg.body = f"""Hello {student.full_name},
 
@@ -80,7 +80,7 @@ def send_interview_reminders():
             continue
         msg = Message(
             subject="Interview Reminder",
-            recipients=["riddeshsaboo10@gmail.com"]   #student.user.email
+            recipients=[application.student.user.email]   #student.user.email
         )
 
         msg.body = f"""Hello {application.student.full_name},
